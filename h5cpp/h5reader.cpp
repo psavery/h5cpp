@@ -95,7 +95,7 @@ bool H5Reader::attribute(const string& group, const string& name, T& value)
 
   hid_t attr = attrReader.attr();
   hid_t type = typeReader.type();
-  const hid_t typeId = BasicTypeToH5<T>::dataTypeId;
+  const hid_t typeId = BasicTypeToH5<T>::dataTypeId();
   if (H5Tequal(type, typeId) == 0) {
     // The type of the attribute does not match the requested type.
     cerr << "Type determined does not match that requested." << endl;
@@ -105,7 +105,7 @@ bool H5Reader::attribute(const string& group, const string& name, T& value)
     cerr << "Something went really wrong....\n\n";
     return false;
   }
-  hid_t status = H5Aread(attr, BasicTypeToH5<T>::memTypeId, value);
+  hid_t status = H5Aread(attr, BasicTypeToH5<T>::memTypeId(), &value);
   return status >= 0;
 }
 
