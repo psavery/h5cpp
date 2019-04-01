@@ -63,7 +63,7 @@ struct BasicTypeToH5<unsigned long long>
 {
   static const hid_t dataTypeId = H5T_STD_U64LE;
   static const hid_t memTypeId = H5T_NATIVE_ULLONG;
-}
+};
 
 template<>
 struct BasicTypeToH5<float>

@@ -34,7 +34,8 @@ public:
 
   // Get the type of the attribute
   // Returns false if the attribute does not exist
-  bool attributeType(const std::string& group, const std::string& name, DataType& type);
+  bool attributeType(const std::string& group, const std::string& name,
+                     DataType& type);
 
   // Read an attribute and interpret it as type T
   // Returns false if type T does not match the type of the attribute
@@ -67,4 +68,4 @@ private:
 
 } // namespace tomviz
 
-#endif // tomvizEmdFormat_h
+#endif // tomvizH5Reader_h

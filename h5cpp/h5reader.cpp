@@ -5,16 +5,20 @@
 
 #include <iostream>
 
+#include "h5attributereader.h"
 #include "h5capi.h"
 #include "h5typemaps.h"
+#include "h5typereader.h"
 
 using std::cout;
 using std::cerr;
+using std::endl;
+
 using std::string;
 
 namespace tomviz {
 
-class H5ReaderImpl {
+class H5Reader::H5ReaderImpl {
 public:
   H5ReaderImpl()
   {
@@ -73,7 +77,7 @@ H5Reader::H5Reader(const string& file)
 H5Reader::~H5Reader() = default;
 
 template <typename T>
-bool H5Reader::attribute<T>(const string& group, const string& name, T& value)
+bool H5Reader::attribute(const string& group, const string& name, T& value)
 {
   if (!m_impl->fileIsValid())
     return false;
@@ -86,26 +90,22 @@ bool H5Reader::attribute<T>(const string& group, const string& name, T& value)
     return false;
   }
 
-  hid_t attr = H5Aopen_by_name(fileId, group.c_str(), name.c_str(),
-                               H5P_DEFAULT, H5P_DEFAULT);
-  hid_t type = H5Aget_type(attr);
-  const typeId = BasicTypeToH5<T>::dataTypeId;
+  H5AttributeReader attrReader(fileId, group.c_str(), name.c_str());
+  H5TypeReader typeReader(attrReader.type());
+
+  hid_t attr = attrReader.attr();
+  hid_t type = typeReader.type();
+  const hid_t typeId = BasicTypeToH5<T>::dataTypeId;
   if (H5Tequal(type, typeId) == 0) {
     // The type of the attribute does not match the requested type.
     cerr << "Type determined does not match that requested." << endl;
     cerr << type << " -> " << typeId << endl;
-    H5Aclose(attr);
-    H5Tclose(type);
     return false;
   } else if (H5Tequal(type, typeId) < 0) {
     cerr << "Something went really wrong....\n\n";
-    H5Aclose(attr);
-    H5Tclose(type);
     return false;
   }
   hid_t status = H5Aread(attr, BasicTypeToH5<T>::memTypeId, value);
-  H5Aclose(attr);
-  H5Tclose(type);
   return status >= 0;
 }
 
