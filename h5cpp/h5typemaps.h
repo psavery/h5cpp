@@ -4,7 +4,12 @@
 #ifndef tomvizH5TypeMaps_h
 #define tomvizH5TypeMaps_h
 
+#include <map>
+
 #include "h5capi.h"
+#include "h5reader.h" // This is included only for the "DataType" enum
+
+namespace tomviz {
 
 template<typename T>
 struct BasicTypeToH5;
@@ -81,5 +86,22 @@ struct BasicTypeToH5<double>
   static hid_t dataTypeId() { return H5T_IEEE_F64LE; }
   static hid_t memTypeId() { return H5T_NATIVE_DOUBLE; }
 };
+
+// Map of H5 types to our own enum class DataType
+static const std::map<hid_t, H5Reader::DataType> H5ToDataType =
+{
+  { H5T_STD_I8LE,   H5Reader::DataType::Int8 },
+  { H5T_STD_I16LE,  H5Reader::DataType::Int16 },
+  { H5T_STD_I32LE,  H5Reader::DataType::Int32 },
+  { H5T_STD_I64LE,  H5Reader::DataType::Int64 },
+  { H5T_STD_U8LE,   H5Reader::DataType::UInt8 },
+  { H5T_STD_U16LE,  H5Reader::DataType::UInt16 },
+  { H5T_STD_U32LE,  H5Reader::DataType::UInt32 },
+  { H5T_STD_U64LE,  H5Reader::DataType::UInt64 },
+  { H5T_IEEE_F32LE, H5Reader::DataType::Float },
+  { H5T_IEEE_F64LE, H5Reader::DataType::Double }
+};
+
+} // end namespace tomviz
 
 #endif // tomvizH5TypeMaps

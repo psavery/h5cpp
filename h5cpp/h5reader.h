@@ -32,6 +32,9 @@ public:
     String
   };
 
+  // Get a string representation of the data type
+  static std::string dataTypeToString(const DataType& type);
+
   // Get the children of a path
   std::vector<std::string> children(const std::string& path);
 

@@ -4,6 +4,7 @@
 #include "h5reader.h"
 
 #include <iostream>
+#include <map>
 
 #include "h5attributereader.h"
 #include "h5capi.h"
@@ -14,9 +15,12 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
+using std::map;
 using std::string;
 
 namespace tomviz {
+
+using DataType = H5Reader::DataType;
 
 class H5Reader::H5ReaderImpl {
 public:
@@ -161,6 +165,63 @@ bool H5Reader::attribute<string>(const string& group, const string& name,
   value = tmpString;
   free(tmpString);
   return true;
+}
+
+bool H5Reader::attributeType(const string& group, const string& name,
+                             DataType& type)
+{
+  if (!m_impl->attributeExists(group, name)) {
+    cerr << "Attribute " << group << name << " not found!" << endl;
+    return false;
+  }
+
+  hid_t fileId = m_impl->fileId();
+  H5AttributeReader attrReader(fileId, group.c_str(), name.c_str());
+  H5TypeReader typeReader(attrReader.type());
+
+  hid_t h5type = typeReader.type();
+
+  // Special case for strings
+  if (H5T_STRING == H5Tget_class(h5type)) {
+    type = DataType::String;
+    return true;
+  }
+
+  // Ensure that the map contains the key
+  auto it = H5ToDataType.find(h5type);
+  if (it == H5ToDataType.end()) {
+    cerr << "H5ToDataType map does not contain key H5 type: " << h5type
+         << endl;
+    return false;
+  }
+
+  type = it->second;
+  return true;
+}
+
+string H5Reader::dataTypeToString(const DataType& type)
+{
+  // Internal map. Keep it updated with the enum.
+  static const map<DataType, const char*> DataTypeToString =
+  {
+    { DataType::Int8,   "Int8"   },
+    { DataType::Int16,  "Int16"  },
+    { DataType::Int32,  "Int32"  },
+    { DataType::Int64,  "Int64"  },
+    { DataType::UInt8,  "UInt8"  },
+    { DataType::UInt16, "UInt16" },
+    { DataType::UInt32, "UInt32" },
+    { DataType::UInt64, "UInt64" },
+    { DataType::Float,  "Float"  },
+    { DataType::Double, "Double" },
+    { DataType::String, "String" }
+  };
+
+  auto it = DataTypeToString.find(type);
+  if (it == DataTypeToString.end())
+    return "";
+
+  return it->second;
 }
 
 // Instantiate our allowable templates here

@@ -6,6 +6,7 @@
 
 using std::cout;
 using std::cerr;
+using std::endl;
 
 using std::string;
 
@@ -27,24 +28,41 @@ bool test_read_attribute(H5Reader& reader)
 {
   string value;
   if (!reader.attribute("/data/tomography/dim1", "name", value)) {
-    std::cerr << "Failed to read name of dim1\n";
+    cerr << "Failed to read name of dim1\n";
     return false;
   }
 
   if (value != "angles") {
-    std::cerr << "name of dim1 should be 'angles', but it is instead: "
-              << value << "\n";
+    cerr << "name of dim1 should be 'angles', but it is instead: "
+         << value << "\n";
     return false;
   }
 
   if (!reader.attribute("/data/tomography/dim1", "units", value)) {
-    std::cerr << "Failed to read units of dim1\n";
+    cerr << "Failed to read units of dim1\n";
     return false;
   }
 
   if (value != "[deg]") {
-    std::cerr << "units of dim1 should be '[deg]', but it is instead: "
-              << value << "\n";
+    cerr << "units of dim1 should be '[deg]', but it is instead: "
+         << value << "\n";
+    return false;
+  }
+
+  return true;
+}
+
+bool test_get_attribute_type(H5Reader& reader)
+{
+  H5Reader::DataType type;
+  if (!reader.attributeType("/data/tomography/dim1", "name", type)) {
+    cerr << "Failed to get attribute type!\n";
+    return false;
+  }
+
+  if (type != H5Reader::DataType::String) {
+    cerr << "Error: type should be 'String', but it is instead: "
+         << H5Reader::dataTypeToString(type) << endl;
     return false;
   }
 
@@ -68,12 +86,17 @@ bool test_attribute_reader(H5Reader& reader)
     return false;
   }
 
+  if (!test_get_attribute_type(reader)) {
+    cerr << "Failed 'get attribute type' test!\n";
+    return false;
+  }
+
   return true;
 }
 
 int main()
 {
-  std::string test_file = TESTDATADIR + std::string("/sample.h5");
+  string test_file = TESTDATADIR + string("/sample.h5");
   H5Reader reader(test_file);
 
   if (!test_attribute_reader(reader)) {
