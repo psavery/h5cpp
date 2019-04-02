@@ -418,12 +418,13 @@ bool H5Reader::readData(const string& path, vector<vector<T>>& result)
   }
 
   // Now move all the results into the vector of vectors
-  if (dims.size() > 1) {
-    return false;
-  }
-  else {
+  if (dims.size() == 1) {
     result.resize(1);
-    result[0] = data;
+    result[0] = std::move(data);
+  }
+  else (dims.size() > 1) {
+    // Not yet implemented...
+    return false;
   }
 
   return true;
@@ -445,7 +446,7 @@ bool H5Reader::readData(const string& path, vector<T>& result)
     return false;
   }
 
-  result = data[0];
+  result = std::move(data[0]);
   return true;
 }
 
