@@ -41,6 +41,15 @@ public:
     return fileIsValid();
   }
 
+  bool attributeExists(const string& group, const string& name)
+  {
+    if (!fileIsValid())
+      return false;
+
+    return H5Aexists_by_name(m_fileId, group.c_str(), name.c_str(),
+                             H5P_DEFAULT) > 0;
+  }
+
   bool getInfoByName(const string& path, H5O_info_t& info)
   {
     if (!fileIsValid())
@@ -78,17 +87,12 @@ H5Reader::~H5Reader() = default;
 template <typename T>
 bool H5Reader::attribute(const string& group, const string& name, T& value)
 {
-  if (!m_impl->fileIsValid())
-    return false;
-
-  hid_t fileId = m_impl->fileId();
-  if (H5Aexists_by_name(fileId, group.c_str(), name.c_str(), H5P_DEFAULT) <=
-      0) {
-    // The specified attribute does not exist.
-    cerr << group << name << " not found!" << endl;
+  if (!m_impl->attributeExists(group, name)) {
+    cerr << "Attribute " << group << name << " not found!" << endl;
     return false;
   }
 
+  hid_t fileId = m_impl->fileId();
   H5AttributeReader attrReader(fileId, group.c_str(), name.c_str());
   H5TypeReader typeReader(attrReader.type());
 
@@ -110,21 +114,15 @@ bool H5Reader::attribute(const string& group, const string& name, T& value)
 
 // We have a specialization for std::string
 template<>
-bool H5Reader::attribute<std::string>(const std::string& group,
-                                      const std::string& name,
-                                      std::string& value)
+bool H5Reader::attribute<string>(const string& group, const string& name,
+                                 string& value)
 {
-  if (!m_impl->fileIsValid())
-    return false;
-
-  hid_t fileId = m_impl->fileId();
-  if (H5Aexists_by_name(fileId, group.c_str(), name.c_str(), H5P_DEFAULT) <=
-      0) {
-    // The specified attribute does not exist.
-    cout << group << name << " not found!" << endl;
+  if (!m_impl->attributeExists(group, name)) {
+    cerr << "Attribute " << group << name << " not found!" << endl;
     return false;
   }
 
+  hid_t fileId = m_impl->fileId();
   H5AttributeReader attrReader(fileId, group.c_str(), name.c_str());
   H5TypeReader typeReader(attrReader.type());
 
