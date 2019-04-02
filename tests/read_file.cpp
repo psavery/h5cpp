@@ -51,23 +51,33 @@ bool test_read_attribute(H5Reader& reader)
   return true;
 }
 
+bool test_attribute_reader(H5Reader& reader)
+{
+  if (!test_attribute_does_not_exist(reader)) {
+    cerr << "Failed 'attribute does not exist' test!\n";
+    return false;
+  }
+
+  if (!test_attribute_wrong_type(reader)) {
+    cerr << "Failed 'attribute wrong type' test!\n";
+    return false;
+  }
+
+  if (!test_read_attribute(reader)) {
+    cerr << "Failed 'read attribute' test!\n";
+    return false;
+  }
+
+  return true;
+}
+
 int main()
 {
   std::string test_file = TESTDATADIR + std::string("/sample.h5");
   H5Reader reader(test_file);
 
-  if (!test_attribute_does_not_exist(reader)) {
-    cout << "Failed attribute does not exist test!\n";
-    return 1;
-  }
-
-  if (!test_attribute_wrong_type(reader)) {
-    cout << "Failed attribute wrong type test!\n";
-    return 1;
-  }
-
-  if (!test_read_attribute(reader)) {
-    cout << "Failed read attribute test!\n";
+  if (!test_attribute_reader(reader)) {
+    cerr << "Attribute reader tests failed!\n";
     return 1;
   }
 
