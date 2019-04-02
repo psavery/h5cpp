@@ -59,6 +59,10 @@ public:
   // Returns false if the data does not exist
   bool numDims(const std::string& path, int& nDims);
 
+  // Get the dimensions of the data
+  // Returns false if an error occurs
+  bool getDims(const std::string& path, std::vector<int>& dims);
+
   // Read 1-dimensional data and interpret it as type T
   // Returns false if type T does not match the type of the data,
   // or if the data is multi-dimensional

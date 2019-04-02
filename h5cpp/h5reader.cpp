@@ -293,7 +293,7 @@ bool H5Reader::dataType(const string& path, DataType& type)
   return m_impl->getH5ToDataType(dataTypeId, type);
 }
 
-bool H5Reader::numDims(const string& path, int& ndims)
+bool H5Reader::getDims(const string& path, vector<int>& dims)
 {
   if (!m_impl->isDataSet(path)) {
     cerr << path << " is not a data set.\n";
@@ -317,12 +317,39 @@ bool H5Reader::numDims(const string& path, int& ndims)
 
   HIDCloser dataSpaceCloser(dataSpaceId, H5Sclose);
 
-  ndims = H5Sget_simple_extent_ndims(dataSpaceId);
-  if (ndims < 1) {
+  int dimCount = H5Sget_simple_extent_ndims(dataSpaceId);
+  if (dimCount < 1) {
     cerr << "Error: number of dimensions is less than 1\n";
     return false;
   }
 
+  hsize_t* h5dims = new hsize_t[dimCount];
+  int dimCount2 = H5Sget_simple_extent_dims(dataSpaceId, h5dims, nullptr);
+
+  if (dimCount != dimCount2) {
+    cerr << "Error: dimCounts do not match\n";
+    delete[] h5dims;
+    return false;
+  }
+
+  dims.clear();
+  dims.resize(dimCount);
+  std::copy(h5dims, h5dims + dimCount, dims.begin());
+
+  delete[] h5dims;
+
+  return true;
+}
+
+bool H5Reader::numDims(const string& path, int& nDims)
+{
+  vector<int> dims;
+  if (!getDims(path, dims)) {
+    cerr << "Failed to get the dimensions\n";
+    return false;
+  }
+
+  nDims = dims.size();
   return true;
 }
 

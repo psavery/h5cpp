@@ -49,6 +49,30 @@ TEST(ReadDataTest, numDims)
   EXPECT_EQ(nDims, 1);
 }
 
+TEST(ReadDataTest, getDims)
+{
+  H5Reader reader(test_file);
+  vector<int> dims;
+
+  EXPECT_TRUE(reader.getDims("/data/tomography/data", dims));
+  EXPECT_EQ(dims.size(), 3);
+  EXPECT_EQ(dims[0],  74);
+  EXPECT_EQ(dims[1], 256);
+  EXPECT_EQ(dims[2], 256);
+
+  EXPECT_TRUE(reader.getDims("/data/tomography/dim1", dims));
+  EXPECT_EQ(dims.size(), 1);
+  EXPECT_EQ(dims[0], 74);
+
+  EXPECT_TRUE(reader.getDims("/data/tomography/dim2", dims));
+  EXPECT_EQ(dims.size(), 1);
+  EXPECT_EQ(dims[0], 256);
+
+  EXPECT_TRUE(reader.getDims("/data/tomography/dim3", dims));
+  EXPECT_EQ(dims.size(), 1);
+  EXPECT_EQ(dims[0], 256);
+}
+
 TEST(ReadDataTest, getData)
 {
   H5Reader reader(test_file);
