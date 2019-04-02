@@ -1,7 +1,24 @@
 
+set(tests
+  ReadAttributes
+)
 
-add_executable(read_attributes_test read_attributes.cpp)
-target_link_libraries(read_attributes_test h5cpp
+set(testSrcs "")
+foreach(TestName ${tests})
+  message(STATUS "Adding ${TestName} test.")
+  string(TOLOWER ${TestName} testname)
+  list(APPEND testSrcs ${testname}test.cpp)
+endforeach()
+message(STATUS "Test source files: ${testSrcs}")
+
+# Add a single executable for all of our tests.
+add_executable(ReaderTests ${testSrcs})
+target_link_libraries(ReaderTests h5cpp
                       ${GTEST_BOTH_LIBRARIES} ${EXTRA_LINK_LIB})
 
-add_test(NAME read_attributes_test COMMAND read_attributes_test)
+# Now add all of the tests, using the gtest_filter argument so that only those
+# cases are run in each test invocation.
+foreach(TestName ${tests})
+  add_test(NAME "Reader-${TestName}"
+    COMMAND AvogadroTests "--gtest_filter=${TestName}Test.*")
+endforeach()
