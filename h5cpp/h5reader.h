@@ -36,7 +36,7 @@ public:
   static std::string dataTypeToString(const DataType& type);
 
   // Get the children of a path
-  std::vector<std::string> children(const std::string& path);
+  bool children(const std::string& path, std::vector<std::string>& result);
 
   // Get the type of the attribute
   // Returns false if the attribute does not exist

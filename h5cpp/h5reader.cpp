@@ -6,10 +6,9 @@
 #include <iostream>
 #include <map>
 
-#include "h5attributereader.h"
 #include "h5capi.h"
 #include "h5typemaps.h"
-#include "h5typereader.h"
+#include "hidcloser.h"
 
 using std::cout;
 using std::cerr;
@@ -17,6 +16,7 @@ using std::endl;
 
 using std::map;
 using std::string;
+using std::vector;
 
 namespace tomviz {
 
@@ -62,11 +62,14 @@ public:
       return false;
     }
 
-    H5AttributeReader attrReader(m_fileId, group.c_str(), name.c_str());
-    H5TypeReader typeReader(attrReader.type());
+    hid_t attr = H5Aopen_by_name(m_fileId, group.c_str(), name.c_str(),
+                                 H5P_DEFAULT, H5P_DEFAULT);
+    hid_t type = H5Aget_type(attr);
 
-    hid_t attr = attrReader.attr();
-    hid_t type = typeReader.type();
+    // For automatic closing upon leaving scope
+    HIDCloser attrCloser(attr, H5Aclose);
+    HIDCloser typeCloser(type, H5Tclose);
+
     if (H5Tequal(type, dataTypeId) == 0) {
       // The type of the attribute does not match the requested type.
       cerr << "Type determined does not match that requested." << endl;
@@ -114,6 +117,33 @@ H5Reader::H5Reader(const string& file)
 
 H5Reader::~H5Reader() = default;
 
+bool H5Reader::children(const string& path, vector<string>& result)
+{
+  result.clear();
+
+  if (!m_impl->fileIsValid())
+    return false;
+
+  constexpr int maxNameSize = 2048;
+  char groupName[maxNameSize];
+  HIDCloser group(H5Gopen(m_impl->fileId(), path.c_str(), H5P_DEFAULT), H5Gclose);
+  hid_t groupId = group.value();
+
+  if (groupId < 0) {
+    cerr << "Failed to open group: " << path << "\n";
+    return false;
+  }
+
+  hsize_t objCount = 0;
+  H5Gget_num_objs(groupId, &objCount);
+  for (hsize_t i = 0; i < objCount; ++i) {
+    H5Gget_objname_by_idx(groupId, i, groupName, maxNameSize);
+    result.push_back(groupName);
+  }
+
+  return true;
+}
+
 template <typename T>
 bool H5Reader::attribute(const string& group, const string& name, T& value)
 {
@@ -133,11 +163,15 @@ bool H5Reader::attribute<string>(const string& group, const string& name,
   }
 
   hid_t fileId = m_impl->fileId();
-  H5AttributeReader attrReader(fileId, group.c_str(), name.c_str());
-  H5TypeReader typeReader(attrReader.type());
 
-  hid_t attr = attrReader.attr();
-  hid_t type = typeReader.type();
+  hid_t attr = H5Aopen_by_name(fileId, group.c_str(), name.c_str(),
+                               H5P_DEFAULT, H5P_DEFAULT);
+  hid_t type = H5Aget_type(attr);
+
+  // For automatic closing upon leaving scope
+  HIDCloser attrCloser(attr, H5Aclose);
+  HIDCloser typeCloser(type, H5Tclose);
+
   if (H5T_STRING != H5Tget_class(type)) {
     cout << group << name << " is not a string" << endl;
     return false;
@@ -182,10 +216,13 @@ bool H5Reader::attributeType(const string& group, const string& name,
   }
 
   hid_t fileId = m_impl->fileId();
-  H5AttributeReader attrReader(fileId, group.c_str(), name.c_str());
-  H5TypeReader typeReader(attrReader.type());
+  hid_t attr = H5Aopen_by_name(fileId, group.c_str(), name.c_str(),
+                               H5P_DEFAULT, H5P_DEFAULT);
+  hid_t h5type = H5Aget_type(attr);
 
-  hid_t h5type = typeReader.type();
+  // For automatic closing upon leaving scope
+  HIDCloser attrCloser(attr, H5Aclose);
+  HIDCloser typeCloser(h5type, H5Tclose);
 
   // Special case for strings
   if (H5T_STRING == H5Tget_class(h5type)) {
