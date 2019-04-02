@@ -81,6 +81,9 @@ int main()
     return 1;
   }
 
-  cout << "Tests all passed!\n";
+  cout << "\n\n"
+       << "*********************\n"
+       << "* Tests all passed! *\n"
+       << "*********************\n\n";
   return 0;
 }
