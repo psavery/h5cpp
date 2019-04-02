@@ -9,6 +9,9 @@
 template<typename T>
 struct BasicTypeToH5;
 
+// Because these H5T_* macros are actually functions,
+// we have to retrieve them like this, or we get
+// compile errors.
 template<>
 struct BasicTypeToH5<char>
 {
