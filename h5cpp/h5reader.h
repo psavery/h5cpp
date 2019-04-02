@@ -19,14 +19,17 @@ public:
 
   // These are for getting the types
   enum class DataType {
-    Int,
+    Int8,
+    Int16,
+    Int32,
+    Int64,
     UInt8,
     UInt16,
     UInt32,
+    UInt64,
     Float,
     Double,
     String
-    // More to be added later...
   };
 
   // Get the children of a path
