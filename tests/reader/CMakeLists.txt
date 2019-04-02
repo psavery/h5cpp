@@ -1,6 +1,7 @@
 
 set(tests
   ReadAttributes
+  GetChildren
 )
 
 set(testSrcs "")

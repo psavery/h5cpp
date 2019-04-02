@@ -124,6 +124,9 @@ bool H5Reader::children(const string& path, vector<string>& result)
   if (!m_impl->fileIsValid())
     return false;
 
+  if (path.empty())
+    return false;
+
   constexpr int maxNameSize = 2048;
   char groupName[maxNameSize];
   hid_t groupId = H5Gopen(m_impl->fileId(), path.c_str(), H5P_DEFAULT);
