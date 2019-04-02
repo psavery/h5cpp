@@ -178,7 +178,7 @@ bool H5Reader::attribute<string>(const string& group, const string& name,
   HIDCloser typeCloser(type, H5Tclose);
 
   if (H5T_STRING != H5Tget_class(type)) {
-    cout << group << name << " is not a string" << endl;
+    cerr << group << name << " is not a string" << endl;
     return false;
   }
   // TODO: make sure tmpString is being allocated and freed properly
@@ -186,25 +186,25 @@ bool H5Reader::attribute<string>(const string& group, const string& name,
   int is_var_str = H5Tis_variable_str(type);
   if (is_var_str > 0) { // if it is a variable-length string
     if (H5Aread(attr, type, &tmpString) < 0) {
-      cout << "Failed to read attribute " << group << " " << name << endl;
+      cerr << "Failed to read attribute " << group << " " << name << endl;
       return false;
     }
   } else if (is_var_str == 0) { // If it is not a variable-length string
     // it must be fixed length since the "is a string" check earlier passed.
     size_t size = H5Tget_size(type);
     if (size == 0) {
-      cout << "Unknown error occurred" << endl;
+      cerr << "Unknown error occurred" << endl;
       return false;
     }
     tmpString = new char[size + 1];
     if (H5Aread(attr, type, tmpString) < 0) {
-      cout << "Failed to read attribute " << group << " " << name << endl;
+      cerr << "Failed to read attribute " << group << " " << name << endl;
       delete tmpString;
       return false;
     }
     tmpString[size] = '\0'; // set null byte, hdf5 doesn't do this for you
   } else {
-    cout << "Unknown error occurred" << endl;
+    cerr << "Unknown error occurred" << endl;
     return false;
   }
   value = tmpString;
