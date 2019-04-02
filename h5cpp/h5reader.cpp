@@ -126,8 +126,10 @@ bool H5Reader::children(const string& path, vector<string>& result)
 
   constexpr int maxNameSize = 2048;
   char groupName[maxNameSize];
-  HIDCloser group(H5Gopen(m_impl->fileId(), path.c_str(), H5P_DEFAULT), H5Gclose);
-  hid_t groupId = group.value();
+  hid_t groupId = H5Gopen(m_impl->fileId(), path.c_str(), H5P_DEFAULT);
+
+  // For automatic closing upon leaving scope
+  HIDCloser groupCloser(groupId, H5Gclose);
 
   if (groupId < 0) {
     cerr << "Failed to open group: " << path << "\n";
