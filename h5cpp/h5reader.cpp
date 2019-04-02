@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <iostream>
 #include <map>
+#include <numeric>
 
 #include "h5capi.h"
 #include "h5typemaps.h"
@@ -82,6 +83,46 @@ public:
     }
     hid_t status = H5Aread(attr, memTypeId, value);
     return status >= 0;
+  }
+
+  // void* data needs to be of the appropiate type and size
+  bool readData(const string& path, hid_t dataTypeId, hid_t memTypeId,
+                void* data)
+  {
+    hid_t dataSetId = H5Dopen(m_fileId, path.c_str(), H5P_DEFAULT);
+    if (dataSetId < 0) {
+      cerr << "Failed to get dataSetId\n";
+      return false;
+    }
+
+    // Automatically close upon leaving scope
+    HIDCloser dataSetCloser(dataSetId, H5Dclose);
+
+    hid_t dataSpaceId = H5Dget_space(dataSetId);
+    if (dataSpaceId < 0) {
+      cerr << "Failed to get dataSpaceId\n";
+      return false;
+    }
+
+    HIDCloser dataSpaceCloser(dataSpaceId, H5Sclose);
+
+    hid_t typeId = H5Dget_type(dataSetId);
+    HIDCloser dataTypeCloser(typeId, H5Tclose);
+
+    if (H5Tequal(typeId, dataTypeId) == 0) {
+      // The type of the data does not match the requested type.
+      cerr << "Type determined does not match that requested." << endl;
+      cerr << typeId << " -> " << dataTypeId << endl;
+      return false;
+    } else if (H5Tequal(typeId, dataTypeId) < 0) {
+      cerr << "Something went really wrong....\n\n";
+      return false;
+    }
+
+    H5Dread(dataSetId, memTypeId, H5S_ALL, dataSpaceId, H5P_DEFAULT,
+            data);
+
+    return true;
   }
 
   bool getInfoByName(const string& path, H5O_info_t& info)
@@ -354,76 +395,57 @@ bool H5Reader::numDims(const string& path, int& nDims)
 }
 
 template <typename T>
-bool H5Reader::readData(const string& path, vector<T>& data)
+bool H5Reader::readData(const string& path, vector<vector<T>>& result)
 {
   const hid_t dataTypeId = BasicTypeToH5<T>::dataTypeId();
   const hid_t memTypeId = BasicTypeToH5<T>::memTypeId();
 
-  data.clear();
-
-  if (!m_impl->isDataSet(path)) {
-    cerr << path << " is not a data set.\n";
-    return false;
-  }
-
-  hid_t dataSetId = H5Dopen(m_impl->fileId(), path.c_str(), H5P_DEFAULT);
-  if (dataSetId < 0) {
-    cerr << "Failed to get dataSetId\n";
-    return false;
-  }
-
-  // Automatically close upon leaving scope
-  HIDCloser dataSetCloser(dataSetId, H5Dclose);
-
-  hid_t dataSpaceId = H5Dget_space(dataSetId);
-  if (dataSpaceId < 0) {
-    cerr << "Failed to get dataSpaceId\n";
-    return false;
-  }
-
-  HIDCloser dataSpaceCloser(dataSpaceId, H5Sclose);
-
-  int dimCount = H5Sget_simple_extent_ndims(dataSpaceId);
-  if (dimCount < 1) {
-    cerr << "There are fewer than 1 dimensions\n";
-    return false;
-  }
-
-  if (dimCount != 1) {
-    // Only implemented for single dimensional data.
-    cerr << "Error: multi-dimensional data detected.\nDimensions are "
-         << dimCount << endl;
-    return false;
-  }
-
   vector<int> dims;
-  hsize_t* h5dims = new hsize_t[dimCount];
-  int dimCount2 = H5Sget_simple_extent_dims(dataSpaceId, h5dims, nullptr);
-  if (dimCount == dimCount2) {
-    dims.resize(dimCount);
-    std::copy(h5dims, h5dims + dimCount, dims.begin());
-  }
-
-  delete[] h5dims;
-
-  hid_t typeId = H5Dget_type(dataSetId);
-  HIDCloser dataTypeCloser(typeId, H5Tclose);
-
-  if (H5Tequal(typeId, dataTypeId) == 0) {
-    // The type of the data does not match the requested type.
-    cerr << "Type determined does not match that requested." << endl;
-    cerr << typeId << " -> " << dataTypeId << endl;
-    return false;
-  } else if (H5Tequal(typeId, dataTypeId) < 0) {
-    cerr << "Something went really wrong....\n\n";
+  if (!getDims(path, dims)) {
+    cerr << "Failed to get the dimensions\n";
     return false;
   }
 
-  data.resize(dims[0]);
+  // Multiply all the numbers together
+  auto size = std::accumulate(dims.cbegin(), dims.cend(), 1,
+                              std::multiplies<int>());
+  vector<T> data;
+  data.resize(size);
 
-  H5Dread(dataSetId, memTypeId, H5S_ALL, dataSpaceId, H5P_DEFAULT,
-          data.data());
+  if (!m_impl->readData(path, dataTypeId, memTypeId, data.data())) {
+    cerr << "Failed to read the data\n";
+    return false;
+  }
 
+  // Now move all the results into the vector of vectors
+  if (dims.size() > 1) {
+    return false;
+  }
+  else {
+    result.resize(1);
+    result[0] = data;
+  }
+
+  return true;
+}
+
+template <typename T>
+bool H5Reader::readData(const string& path, vector<T>& result)
+{
+  vector<vector<T>> data;
+  if (!readData(path, data)) {
+    cerr << "Failed to read the data\n";
+    return false;
+  }
+
+  // Make sure there is one dimension
+  if (data.size() != 1) {
+    cerr << "Error: single-dimensional readData() called, but "
+         << "multi-dimensional data was obtained.\n";
+    return false;
+  }
+
+  result = data[0];
   return true;
 }
 
@@ -470,7 +492,7 @@ template bool H5Reader::attribute(const string&, const string&, double&);
 
 template bool H5Reader::attribute(const string&, const string&, string&);
 
-// readData()
+// readData(): single-dimensional
 template bool H5Reader::readData(const string&, vector<char>&);
 template bool H5Reader::readData(const string&, vector<short>&);
 template bool H5Reader::readData(const string&, vector<int>&);
@@ -482,7 +504,23 @@ template bool H5Reader::readData(const string&, vector<unsigned long long>&);
 template bool H5Reader::readData(const string&, vector<float>&);
 template bool H5Reader::readData(const string&, vector<double>&);
 
-// We need to create a specialization for this
+// readData(): multi-dimensional
+template bool H5Reader::readData(const string&, vector<vector<char>>&);
+template bool H5Reader::readData(const string&, vector<vector<short>>&);
+template bool H5Reader::readData(const string&, vector<vector<int>>&);
+template bool H5Reader::readData(const string&, vector<vector<long long>>&);
+template bool H5Reader::readData(const string&,
+                                 vector<vector<unsigned char>>&);
+template bool H5Reader::readData(const string&,
+                                 vector<vector<unsigned short>>&);
+template bool H5Reader::readData(const string&, vector<vector<unsigned int>>&);
+template bool H5Reader::readData(const string&,
+                                 vector<vector<unsigned long long>>&);
+template bool H5Reader::readData(const string&, vector<vector<float>>&);
+template bool H5Reader::readData(const string&, vector<vector<double>>&);
+
+// We need to create a specialization for these
 //template bool H5Reader::readData(const string&, vector<string>&);
+//template bool H5Reader::readData(const string&, vector<vector<string>>&);
 
 } // namespace tomviz
