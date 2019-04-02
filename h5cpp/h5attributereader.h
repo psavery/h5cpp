@@ -33,12 +33,12 @@ public:
   H5AttributeReader(const H5AttributeReader&) = delete;
   H5AttributeReader& operator=(const H5AttributeReader&) = delete;
 
-  H5AttributeReader(H5AttributeReader&& other)
+  H5AttributeReader(H5AttributeReader&& other) noexcept
   {
     *this = std::move(other);
   }
 
-  H5AttributeReader& operator=(H5AttributeReader&& other)
+  H5AttributeReader& operator=(H5AttributeReader&& other) noexcept
   {
     clear();
     m_attr = other.m_attr;
