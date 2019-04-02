@@ -181,7 +181,6 @@ bool H5Reader::attribute<string>(const string& group, const string& name,
     cerr << group << name << " is not a string" << endl;
     return false;
   }
-  // TODO: make sure tmpString is being allocated and freed properly
   char* tmpString;
   int is_var_str = H5Tis_variable_str(type);
   if (is_var_str > 0) { // if it is a variable-length string
@@ -189,6 +188,8 @@ bool H5Reader::attribute<string>(const string& group, const string& name,
       cerr << "Failed to read attribute " << group << " " << name << endl;
       return false;
     }
+    value = tmpString;
+    free(tmpString);
   } else if (is_var_str == 0) { // If it is not a variable-length string
     // it must be fixed length since the "is a string" check earlier passed.
     size_t size = H5Tget_size(type);
@@ -203,12 +204,13 @@ bool H5Reader::attribute<string>(const string& group, const string& name,
       return false;
     }
     tmpString[size] = '\0'; // set null byte, hdf5 doesn't do this for you
+    value = tmpString;
+    delete [] tmpString;
   } else {
     cerr << "Unknown error occurred" << endl;
     return false;
   }
-  value = tmpString;
-  free(tmpString);
+
   return true;
 }
 
