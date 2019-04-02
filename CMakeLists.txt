@@ -2,8 +2,12 @@ cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
 project(h5cpp)
 
-find_package(HDF5 REQUIRED)
+add_subdirectory(h5cpp)
 
-include_directories(${HDF5_INCLUDE_DIRS})
+option(BUILD_TESTS
+  "Whether to compile the test suite as well as the main code."
+  OFF)
 
-add_library(h5cpp h5cpp/h5reader.cpp)
+if(BUILD_TESTS)
+  add_subdirectory(tests)
+endif(BUILD_TESTS)
