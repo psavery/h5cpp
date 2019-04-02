@@ -134,6 +134,7 @@ bool H5Reader::attribute<std::string>(const std::string& group,
     cout << group << name << " is not a string" << endl;
     return false;
   }
+  // TODO: make sure tmpString is being allocated and freed properly
   char* tmpString;
   int is_var_str = H5Tis_variable_str(type);
   if (is_var_str > 0) { // if it is a variable-length string
