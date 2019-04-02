@@ -3,6 +3,7 @@
 
 #include "h5reader.h"
 
+#include <algorithm>
 #include <iostream>
 #include <map>
 
@@ -89,9 +90,28 @@ public:
       return false;
 
     // Verify that the path exists in the HDF5 file.
-    if (H5Oget_info_by_name(m_fileId, path.c_str(), &info, H5P_DEFAULT < 0))
+    if (H5Oget_info_by_name(m_fileId, path.c_str(), &info, H5P_DEFAULT) < 0)
       return false;
 
+    return true;
+  }
+
+  bool getH5ToDataType(hid_t h5type, DataType& type)
+  {
+    // Find the type
+    auto it = std::find_if(H5ToDataType.cbegin(), H5ToDataType.cend(),
+      [h5type](const std::pair<hid_t, DataType>& t)
+      {
+        return H5Tequal(t.first, h5type);
+      });
+
+    if (it == H5ToDataType.end()) {
+      cerr << "H5ToDataType map does not contain H5 type: " << h5type
+           << endl;
+      return false;
+    }
+
+    type = it->second;
     return true;
   }
 
@@ -237,16 +257,35 @@ bool H5Reader::attributeType(const string& group, const string& name,
     return true;
   }
 
-  // Ensure that the map contains the key
-  auto it = H5ToDataType.find(h5type);
-  if (it == H5ToDataType.end()) {
-    cerr << "H5ToDataType map does not contain key H5 type: " << h5type
-         << endl;
+  return m_impl->getH5ToDataType(h5type, type);
+}
+
+bool H5Reader::dataType(const std::string& path, DataType& type)
+{
+  H5O_info_t info;
+  if (!m_impl->getInfoByName(path, info)) {
+    cerr << "Failed to get H5O info by name\n";
     return false;
   }
 
-  type = it->second;
-  return true;
+  if (info.type != H5O_TYPE_DATASET) {
+    cerr << path << " is not an H5O_TYPE_DATASET!\n";
+    return false;
+  }
+
+  hid_t dataSetId = H5Dopen(m_impl->fileId(), path.c_str(), H5P_DEFAULT);
+  if (dataSetId < 0) {
+    cerr << "Failed to get data set id\n";
+    return false;
+  }
+
+  hid_t dataTypeId = H5Dget_type(dataSetId);
+
+  // Automatically close
+  HIDCloser dataSetCloser(dataSetId, H5Dclose);
+  HIDCloser dataTypeCloser(dataTypeId, H5Tclose);
+
+  return m_impl->getH5ToDataType(dataTypeId, type);
 }
 
 string H5Reader::dataTypeToString(const DataType& type)

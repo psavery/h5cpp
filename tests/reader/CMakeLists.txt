@@ -1,6 +1,7 @@
 
 set(tests
   ReadAttributes
+  ReadData
   GetChildren
 )
 

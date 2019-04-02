@@ -88,6 +88,7 @@ struct BasicTypeToH5<double>
 };
 
 // Map of H5 types to our own enum class DataType
+// Key comparison must be done with H5Tequal
 static const std::map<hid_t, H5Reader::DataType> H5ToDataType =
 {
   { H5T_STD_I8LE,   H5Reader::DataType::Int8 },
