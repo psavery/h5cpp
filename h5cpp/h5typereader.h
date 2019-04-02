@@ -38,9 +38,11 @@ public:
     clear();
   }
 
+  bool typeIsValid() { return m_type >= 0; }
+
   void clear()
   {
-    if (m_type > 0) {
+    if (typeIsValid()) {
       H5Tclose(m_type);
       m_type = H5I_INVALID_HID;
     }

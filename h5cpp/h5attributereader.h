@@ -45,16 +45,18 @@ public:
     other.m_attr = H5I_INVALID_HID;
   }
 
+  bool attributeIsValid() { return m_attr >= 0; }
+
   void clear()
   {
-    if (m_attr > 0) {
+    if (attributeIsValid()) {
       H5Aclose(m_attr);
       m_attr = H5I_INVALID_HID;
     }
   }
 
 private:
-  hid_t m_attr;
+  hid_t m_attr = H5I_INVALID_HID;
 };
 
 } // namespace tomviz

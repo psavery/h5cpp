@@ -32,24 +32,13 @@ public:
 
   ~H5ReaderImpl()
   {
-    if (fileIsValid()) {
-      H5Fclose(m_fileId);
-      m_fileId = H5I_INVALID_HID;
-    }
+    clear();
   }
 
   bool openFile(const string& file)
   {
     m_fileId = H5Fopen(file.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
     return fileIsValid();
-  }
-
-  bool fileIsValid()
-  {
-    if (m_fileId == H5I_INVALID_HID || m_fileId < 0)
-      return false;
-
-    return true;
   }
 
   bool getInfoByName(const string& path, H5O_info_t& info)
@@ -62,6 +51,16 @@ public:
       return false;
 
     return true;
+  }
+
+  bool fileIsValid() { return m_fileId >= 0; }
+
+  void clear()
+  {
+    if (fileIsValid()) {
+      H5Fclose(m_fileId);
+      m_fileId = H5I_INVALID_HID;
+    }
   }
 
   hid_t fileId() const { return m_fileId; }
