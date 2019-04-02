@@ -31,6 +31,24 @@ TEST(ReadDataTest, getDataType)
   EXPECT_EQ(type, H5Reader::DataType::Float);
 }
 
+TEST(ReadDataTest, numDims)
+{
+  H5Reader reader(test_file);
+  int nDims;
+
+  EXPECT_TRUE(reader.numDims("/data/tomography/data", nDims));
+  EXPECT_EQ(nDims, 3);
+
+  EXPECT_TRUE(reader.numDims("/data/tomography/dim1", nDims));
+  EXPECT_EQ(nDims, 1);
+
+  EXPECT_TRUE(reader.numDims("/data/tomography/dim2", nDims));
+  EXPECT_EQ(nDims, 1);
+
+  EXPECT_TRUE(reader.numDims("/data/tomography/dim3", nDims));
+  EXPECT_EQ(nDims, 1);
+}
+
 TEST(ReadDataTest, getData)
 {
   H5Reader reader(test_file);

@@ -54,7 +54,7 @@ public:
 
   // Get the number of dimensions of the data
   // Returns false if the data does not exist
-  bool numDimensions(const std::string& path, int& numDims);
+  bool numDims(const std::string& path, int& numDims);
 
   // Read 1-dimensional data and interpret it as type T
   // Returns false if type T does not match the type of the data,

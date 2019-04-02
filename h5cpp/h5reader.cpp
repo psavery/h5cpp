@@ -293,6 +293,39 @@ bool H5Reader::dataType(const string& path, DataType& type)
   return m_impl->getH5ToDataType(dataTypeId, type);
 }
 
+bool H5Reader::numDims(const string& path, int& ndims)
+{
+  if (!m_impl->isDataSet(path)) {
+    cerr << path << " is not a data set.\n";
+    return false;
+  }
+
+  hid_t dataSetId = H5Dopen(m_impl->fileId(), path.c_str(), H5P_DEFAULT);
+  if (dataSetId < 0) {
+    cerr << "Failed to get dataSetId\n";
+    return false;
+  }
+
+  // Automatically close upon leaving scope
+  HIDCloser dataSetCloser(dataSetId, H5Dclose);
+
+  hid_t dataSpaceId = H5Dget_space(dataSetId);
+  if (dataSpaceId < 0) {
+    cerr << "Failed to get dataSpaceId\n";
+    return false;
+  }
+
+  HIDCloser dataSpaceCloser(dataSpaceId, H5Sclose);
+
+  ndims = H5Sget_simple_extent_ndims(dataSpaceId);
+  if (ndims < 1) {
+    cerr << "Error: number of dimensions is less than 1\n";
+    return false;
+  }
+
+  return true;
+}
+
 template <typename T>
 bool H5Reader::readData(const string& path, vector<T>& data)
 {
