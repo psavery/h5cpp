@@ -1,7 +1,7 @@
 
 
-add_executable(test_read_file read_file.cpp)
-target_link_libraries(test_read_file h5cpp
+add_executable(read_attributes_test read_attributes.cpp)
+target_link_libraries(read_attributes_test h5cpp
                       ${GTEST_BOTH_LIBRARIES} ${EXTRA_LINK_LIB})
 
-add_test(NAME test_read_file COMMAND test_read_file)
+add_test(NAME read_attributes_test COMMAND read_attributes_test)
