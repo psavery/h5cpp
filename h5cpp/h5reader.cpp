@@ -54,6 +54,32 @@ public:
                              H5P_DEFAULT) > 0;
   }
 
+  bool attribute(const string& group, const string& name, void* value,
+                 hid_t dataTypeId, hid_t memTypeId)
+  {
+    if (!attributeExists(group, name)) {
+      cerr << "Attribute " << group << name << " not found!" << endl;
+      return false;
+    }
+
+    H5AttributeReader attrReader(m_fileId, group.c_str(), name.c_str());
+    H5TypeReader typeReader(attrReader.type());
+
+    hid_t attr = attrReader.attr();
+    hid_t type = typeReader.type();
+    if (H5Tequal(type, dataTypeId) == 0) {
+      // The type of the attribute does not match the requested type.
+      cerr << "Type determined does not match that requested." << endl;
+      cerr << type << " -> " << dataTypeId << endl;
+      return false;
+    } else if (H5Tequal(type, dataTypeId) < 0) {
+      cerr << "Something went really wrong....\n\n";
+      return false;
+    }
+    hid_t status = H5Aread(attr, memTypeId, value);
+    return status >= 0;
+  }
+
   bool getInfoByName(const string& path, H5O_info_t& info)
   {
     if (!fileIsValid())
@@ -91,29 +117,9 @@ H5Reader::~H5Reader() = default;
 template <typename T>
 bool H5Reader::attribute(const string& group, const string& name, T& value)
 {
-  if (!m_impl->attributeExists(group, name)) {
-    cerr << "Attribute " << group << name << " not found!" << endl;
-    return false;
-  }
-
-  hid_t fileId = m_impl->fileId();
-  H5AttributeReader attrReader(fileId, group.c_str(), name.c_str());
-  H5TypeReader typeReader(attrReader.type());
-
-  hid_t attr = attrReader.attr();
-  hid_t type = typeReader.type();
-  const hid_t typeId = BasicTypeToH5<T>::dataTypeId();
-  if (H5Tequal(type, typeId) == 0) {
-    // The type of the attribute does not match the requested type.
-    cerr << "Type determined does not match that requested." << endl;
-    cerr << type << " -> " << typeId << endl;
-    return false;
-  } else if (H5Tequal(type, typeId) < 0) {
-    cerr << "Something went really wrong....\n\n";
-    return false;
-  }
-  hid_t status = H5Aread(attr, BasicTypeToH5<T>::memTypeId(), &value);
-  return status >= 0;
+  const hid_t dataTypeId = BasicTypeToH5<T>::dataTypeId();
+  const hid_t memTypeId = BasicTypeToH5<T>::memTypeId();
+  return m_impl->attribute(group, name, &value, dataTypeId, memTypeId);
 }
 
 // We have a specialization for std::string
