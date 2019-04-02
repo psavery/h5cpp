@@ -9,5 +9,7 @@ option(BUILD_TESTS
   OFF)
 
 if(BUILD_TESTS)
+  include(CTest)
+  enable_testing()
   add_subdirectory(tests)
 endif(BUILD_TESTS)

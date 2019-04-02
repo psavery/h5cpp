@@ -20,5 +20,5 @@ target_link_libraries(ReaderTests h5cpp
 # cases are run in each test invocation.
 foreach(TestName ${tests})
   add_test(NAME "Reader-${TestName}"
-    COMMAND AvogadroTests "--gtest_filter=${TestName}Test.*")
+    COMMAND ReaderTests "--gtest_filter=${TestName}Test.*")
 endforeach()

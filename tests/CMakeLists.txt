@@ -18,8 +18,6 @@ else()
   set(EXTRA_LINK_LIB "")
 endif()
 
-enable_testing()
-
 option(RUN_CODE_COV
        "If this is true, then code coverage will be ran."
        OFF)
