@@ -17,6 +17,9 @@ public:
   // If a file is open, automatically closes the file
   ~H5Reader();
 
+  H5Reader(const H5Reader&) = delete;
+  H5Reader& operator=(const H5Reader&) = delete;
+
   // These are for getting the types
   enum class DataType {
     Int8,
@@ -32,7 +35,7 @@ public:
     String
   };
 
-  // Get a string representation of the data type
+  // Get a string representation of the DataType enum
   static std::string dataTypeToString(const DataType& type);
 
   // Get the children of a path
@@ -54,7 +57,7 @@ public:
 
   // Get the number of dimensions of the data
   // Returns false if the data does not exist
-  bool numDims(const std::string& path, int& numDims);
+  bool numDims(const std::string& path, int& nDims);
 
   // Read 1-dimensional data and interpret it as type T
   // Returns false if type T does not match the type of the data,
