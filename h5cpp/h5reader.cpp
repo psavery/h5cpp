@@ -96,6 +96,17 @@ public:
     return true;
   }
 
+  bool isDataSet(const string& path)
+  {
+    H5O_info_t info;
+    if (!getInfoByName(path, info)) {
+      cerr << "Failed to get H5O info by name\n";
+      return false;
+    }
+
+    return info.type == H5O_TYPE_DATASET;
+  }
+
   bool getH5ToDataType(hid_t h5type, DataType& type)
   {
     // Find the type
@@ -260,16 +271,10 @@ bool H5Reader::attributeType(const string& group, const string& name,
   return m_impl->getH5ToDataType(h5type, type);
 }
 
-bool H5Reader::dataType(const std::string& path, DataType& type)
+bool H5Reader::dataType(const string& path, DataType& type)
 {
-  H5O_info_t info;
-  if (!m_impl->getInfoByName(path, info)) {
-    cerr << "Failed to get H5O info by name\n";
-    return false;
-  }
-
-  if (info.type != H5O_TYPE_DATASET) {
-    cerr << path << " is not an H5O_TYPE_DATASET!\n";
+  if (!m_impl->isDataSet(path)) {
+    cerr << path << " is not a data set.\n";
     return false;
   }
 
@@ -286,6 +291,80 @@ bool H5Reader::dataType(const std::string& path, DataType& type)
   HIDCloser dataTypeCloser(dataTypeId, H5Tclose);
 
   return m_impl->getH5ToDataType(dataTypeId, type);
+}
+
+template <typename T>
+bool H5Reader::readData(const string& path, vector<T>& data)
+{
+  const hid_t dataTypeId = BasicTypeToH5<T>::dataTypeId();
+  const hid_t memTypeId = BasicTypeToH5<T>::memTypeId();
+
+  data.clear();
+
+  if (!m_impl->isDataSet(path)) {
+    cerr << path << " is not a data set.\n";
+    return false;
+  }
+
+  hid_t dataSetId = H5Dopen(m_impl->fileId(), path.c_str(), H5P_DEFAULT);
+  if (dataSetId < 0) {
+    cerr << "Failed to get dataSetId\n";
+    return false;
+  }
+
+  // Automatically close upon leaving scope
+  HIDCloser dataSetCloser(dataSetId, H5Dclose);
+
+  hid_t dataSpaceId = H5Dget_space(dataSetId);
+  if (dataSpaceId < 0) {
+    cerr << "Failed to get dataSpaceId\n";
+    return false;
+  }
+
+  HIDCloser dataSpaceCloser(dataSpaceId, H5Sclose);
+
+  int dimCount = H5Sget_simple_extent_ndims(dataSpaceId);
+  if (dimCount < 1) {
+    cerr << "There are fewer than 1 dimensions\n";
+    return false;
+  }
+
+  if (dimCount != 1) {
+    // Only implemented for single dimensional data.
+    cerr << "Error: multi-dimensional data detected.\nDimensions are "
+         << dimCount << endl;
+    return false;
+  }
+
+  vector<int> dims;
+  hsize_t* h5dims = new hsize_t[dimCount];
+  int dimCount2 = H5Sget_simple_extent_dims(dataSpaceId, h5dims, nullptr);
+  if (dimCount == dimCount2) {
+    dims.resize(dimCount);
+    std::copy(h5dims, h5dims + dimCount, dims.begin());
+  }
+
+  delete[] h5dims;
+
+  hid_t typeId = H5Dget_type(dataSetId);
+  HIDCloser dataTypeCloser(typeId, H5Tclose);
+
+  if (H5Tequal(typeId, dataTypeId) == 0) {
+    // The type of the data does not match the requested type.
+    cerr << "Type determined does not match that requested." << endl;
+    cerr << typeId << " -> " << dataTypeId << endl;
+    return false;
+  } else if (H5Tequal(typeId, dataTypeId) < 0) {
+    cerr << "Something went really wrong....\n\n";
+    return false;
+  }
+
+  data.resize(dims[0]);
+
+  H5Dread(dataSetId, memTypeId, H5S_ALL, dataSpaceId, H5P_DEFAULT,
+          data.data());
+
+  return true;
 }
 
 string H5Reader::dataTypeToString(const DataType& type)
@@ -314,6 +393,8 @@ string H5Reader::dataTypeToString(const DataType& type)
 }
 
 // Instantiate our allowable templates here
+
+// attribute()
 template bool H5Reader::attribute(const string&, const string&, char&);
 template bool H5Reader::attribute(const string&, const string&, short&);
 template bool H5Reader::attribute(const string&, const string&, int&);
@@ -328,5 +409,20 @@ template bool H5Reader::attribute(const string&, const string&, float&);
 template bool H5Reader::attribute(const string&, const string&, double&);
 
 template bool H5Reader::attribute(const string&, const string&, string&);
+
+// readData()
+template bool H5Reader::readData(const string&, vector<char>&);
+template bool H5Reader::readData(const string&, vector<short>&);
+template bool H5Reader::readData(const string&, vector<int>&);
+template bool H5Reader::readData(const string&, vector<long long>&);
+template bool H5Reader::readData(const string&, vector<unsigned char>&);
+template bool H5Reader::readData(const string&, vector<unsigned short>&);
+template bool H5Reader::readData(const string&, vector<unsigned int>&);
+template bool H5Reader::readData(const string&, vector<unsigned long long>&);
+template bool H5Reader::readData(const string&, vector<float>&);
+template bool H5Reader::readData(const string&, vector<double>&);
+
+// We need to create a specialization for this
+//template bool H5Reader::readData(const string&, vector<string>&);
 
 } // namespace tomviz

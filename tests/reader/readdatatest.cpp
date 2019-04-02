@@ -30,3 +30,20 @@ TEST(ReadDataTest, getDataType)
   EXPECT_TRUE(reader.dataType("/data/tomography/dim3", type));
   EXPECT_EQ(type, H5Reader::DataType::Float);
 }
+
+TEST(ReadDataTest, getData)
+{
+  H5Reader reader(test_file);
+  vector<float> data;
+
+  EXPECT_TRUE(reader.readData("/data/tomography/dim1", data));
+
+  // These should be -73 to 73, with a spacing of 2
+  vector<float> comparison;
+  for (int i = -73; i <= 73; i +=2)
+    comparison.push_back(i);
+
+  EXPECT_EQ(data.size(), comparison.size());
+  for (size_t i = 0; i < data.size(); ++i)
+    EXPECT_FLOAT_EQ(data[i], comparison[i]);
+}
