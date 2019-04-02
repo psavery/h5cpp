@@ -20,10 +20,10 @@ struct BasicTypeToH5<char>
 };
 
 template<>
-struct BasicTypeToH5<unsigned char>
+struct BasicTypeToH5<short>
 {
-  static hid_t dataTypeId() { return H5T_STD_U8LE; }
-  static hid_t memTypeId() { return H5T_NATIVE_UCHAR; }
+  static hid_t dataTypeId() { return H5T_STD_I16LE; }
+  static hid_t memTypeId() { return H5T_NATIVE_SHORT; }
 };
 
 template<>
@@ -34,13 +34,6 @@ struct BasicTypeToH5<int>
 };
 
 template<>
-struct BasicTypeToH5<short>
-{
-  static hid_t dataTypeId() { return H5T_STD_I16LE; }
-  static hid_t memTypeId() { return H5T_NATIVE_SHORT; }
-};
-
-template<>
 struct BasicTypeToH5<long long>
 {
   static hid_t dataTypeId() { return H5T_STD_I64LE; }
@@ -48,10 +41,10 @@ struct BasicTypeToH5<long long>
 };
 
 template<>
-struct BasicTypeToH5<unsigned int>
+struct BasicTypeToH5<unsigned char>
 {
-  static hid_t dataTypeId() { return H5T_STD_U32LE; }
-  static hid_t memTypeId() { return H5T_NATIVE_UINT; }
+  static hid_t dataTypeId() { return H5T_STD_U8LE; }
+  static hid_t memTypeId() { return H5T_NATIVE_UCHAR; }
 };
 
 template<>
@@ -59,6 +52,13 @@ struct BasicTypeToH5<unsigned short>
 {
   static hid_t dataTypeId() { return H5T_STD_U16LE; }
   static hid_t memTypeId() { return H5T_NATIVE_USHORT; }
+};
+
+template<>
+struct BasicTypeToH5<unsigned int>
+{
+  static hid_t dataTypeId() { return H5T_STD_U32LE; }
+  static hid_t memTypeId() { return H5T_NATIVE_UINT; }
 };
 
 template<>

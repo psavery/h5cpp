@@ -167,17 +167,18 @@ bool H5Reader::attribute<std::string>(const std::string& group,
 
 // Instantiate our allowable templates here
 template bool H5Reader::attribute(const string&, const string&, char&);
-template bool H5Reader::attribute(const string&, const string&, unsigned char&);
-template bool H5Reader::attribute(const string&, const string&, int&);
 template bool H5Reader::attribute(const string&, const string&, short&);
+template bool H5Reader::attribute(const string&, const string&, int&);
 template bool H5Reader::attribute(const string&, const string&, long long&);
-template bool H5Reader::attribute(const string&, const string&, unsigned int&);
+template bool H5Reader::attribute(const string&, const string&, unsigned char&);
 template bool H5Reader::attribute(const string&, const string&,
                                   unsigned short&);
+template bool H5Reader::attribute(const string&, const string&, unsigned int&);
 template bool H5Reader::attribute(const string&, const string&,
                                   unsigned long long&);
 template bool H5Reader::attribute(const string&, const string&, float&);
 template bool H5Reader::attribute(const string&, const string&, double&);
+
 template bool H5Reader::attribute(const string&, const string&, string&);
 
 } // namespace tomviz
