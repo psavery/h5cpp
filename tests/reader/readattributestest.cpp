@@ -13,7 +13,7 @@ using tomviz::H5Reader;
 
 static const string test_file = TESTDATADIR + string("/tomviz_tilt_ser.emd");
 
-TEST(AttributeTest, doesNotExist)
+TEST(ReadAttributesTest, doesNotExist)
 {
   H5Reader reader(test_file);
   int value;
@@ -21,7 +21,7 @@ TEST(AttributeTest, doesNotExist)
   EXPECT_FALSE(reader.attribute("/does_not_exist/", "does_not_exist", value));
 }
 
-TEST(AttributeTest, wrongType)
+TEST(ReadAttributesTest, wrongType)
 {
   H5Reader reader(test_file);
   int value;
@@ -29,7 +29,7 @@ TEST(AttributeTest, wrongType)
   EXPECT_FALSE(reader.attribute("/data/tomography/dim1", "name", value));
 }
 
-TEST(AttributeTest, readAttribute)
+TEST(ReadAttributesTest, readAttribute)
 {
   H5Reader reader(test_file);
   string value;
@@ -41,7 +41,7 @@ TEST(AttributeTest, readAttribute)
   EXPECT_EQ(value, "[deg]");
 }
 
-TEST(AttributeTest, getAttributeType)
+TEST(ReadAttributesTest, getAttributeType)
 {
   H5Reader reader(test_file);
   H5Reader::DataType type;
