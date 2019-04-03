@@ -41,9 +41,12 @@ public:
 
   HIDCloser& operator=(HIDCloser&& other) noexcept
   {
-    close();
-    m_value = other.m_value;
-    other.m_value = H5I_INVALID_HID;
+    if (this != &other) {
+      close();
+      m_value = other.m_value;
+      other.m_value = H5I_INVALID_HID;
+    }
+    return *this;
   }
 
   ~HIDCloser()
