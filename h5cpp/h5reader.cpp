@@ -452,7 +452,7 @@ bool H5Reader::readData(const string& path, vector<vector<T>>& result)
   }
 
   // Just a sanity check
-  if (data.size() != dims[0] * dims[1]) {
+  if (static_cast<int>(data.size()) != dims[0] * dims[1]) {
     cerr << "Data size does not match dimensions!\n";
     return false;
   }
@@ -462,8 +462,8 @@ bool H5Reader::readData(const string& path, vector<vector<T>>& result)
   for (auto& elem: result)
     elem.resize(dims[1]);
 
-  for (size_t i = 0; i < dims[0]; ++i) {
-    for (size_t j = 0; j < dims[1]; ++j) {
+  for (int i = 0; i < dims[0]; ++i) {
+    for (int j = 0; j < dims[1]; ++j) {
       result[i][j] = data[i * dims[1] + j];
     }
   }
