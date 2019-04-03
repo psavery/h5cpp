@@ -32,6 +32,9 @@ TEST(ReadDataTest, getDataType)
 
   EXPECT_TRUE(reader.dataType("/data/tomography/dim3", type));
   EXPECT_EQ(type, H5Reader::DataType::Float);
+
+  // One test for the string converter
+  EXPECT_EQ(reader.dataTypeToString(type), "Float");
 }
 
 TEST(ReadDataTest, numDims)
