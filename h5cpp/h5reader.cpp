@@ -481,23 +481,17 @@ vector<T> H5Reader::readData(const string& path, vector<int>& dims)
 }
 
 template <typename T>
-vector<int> H5Reader::readData(const string& path, T* data)
+bool H5Reader::readData(const string& path, T* data)
 {
   const hid_t dataTypeId = BasicTypeToH5<T>::dataTypeId();
   const hid_t memTypeId = BasicTypeToH5<T>::memTypeId();
 
-  vector<int> dims = getDimensions(path);
-  if (dims.empty()) {
-    cerr << "Failed to get the dimensions\n";
-    return dims;
-  }
-
   if (!m_impl->readData(path, dataTypeId, memTypeId, data)) {
     cerr << "Failed to read the data\n";
-    return vector<int>();
+    return false;
   }
 
-  return dims;
+  return true;
 }
 
 string H5Reader::dataTypeToString(const DataType& type)
@@ -570,21 +564,19 @@ template vector<float> H5Reader::readData(const string&, vector<int>&);
 template vector<double> H5Reader::readData(const string&, vector<int>&);
 
 // readData(): multi-dimensional
-template vector<int> H5Reader::readData(const string&, char*);
-template vector<int> H5Reader::readData(const string&, short*);
-template vector<int> H5Reader::readData(const string&, int*);
-template vector<int> H5Reader::readData(const string&, long long*);
-template vector<int> H5Reader::readData(const string&, unsigned char*);
-template vector<int> H5Reader::readData(const string&, unsigned short*);
-template vector<int> H5Reader::readData(const string&, unsigned int*);
-template vector<int> H5Reader::readData(const string&, unsigned long long*);
-template vector<int> H5Reader::readData(const string&, float*);
-template vector<int> H5Reader::readData(const string&, double*);
+template bool H5Reader::readData(const string&, char*);
+template bool H5Reader::readData(const string&, short*);
+template bool H5Reader::readData(const string&, int*);
+template bool H5Reader::readData(const string&, long long*);
+template bool H5Reader::readData(const string&, unsigned char*);
+template bool H5Reader::readData(const string&, unsigned short*);
+template bool H5Reader::readData(const string&, unsigned int*);
+template bool H5Reader::readData(const string&, unsigned long long*);
+template bool H5Reader::readData(const string&, float*);
+template bool H5Reader::readData(const string&, double*);
 
 // We need to create specializations for these
-//template bool H5Reader::readData(const string&, vector<string>&);
-//template bool H5Reader::readData(const string&, vector<vector<string>>&);
-//template bool H5Reader::readData(const string&, vector<string>&,
-//                                 vector<int>&);
+//template vector<string> H5Reader::readData(const string&);
+//template vector<string> H5Reader::readData(const string&, vector<int>&);
 
 } // namespace tomviz
