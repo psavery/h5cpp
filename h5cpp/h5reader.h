@@ -75,10 +75,11 @@ public:
   bool readData(const std::string& path, std::vector<std::vector<T>>& data);
 
   // Read multi-dimensional data and interpret it as type T.
-  // A single vector is returned containing the multi-dimensional data.
-  // The caller can use the dimensions to put the results in a different
-  // kind of object if desired.
-  // Returns false if type T does not match the type of data
+  // A vector containing the multi-dimensional data is returned, along
+  // with a vector containing the dimensions.
+  // The caller can use the dimensions to put the results in an object
+  // of a different shape, if desired.
+  // Returns false if an error occurs.
   template <typename T>
   bool readData(const std::string& path, std::vector<T>& data,
                 std::vector<int>& dimensions);
