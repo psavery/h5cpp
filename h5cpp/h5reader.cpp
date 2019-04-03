@@ -374,7 +374,7 @@ bool H5Reader::getDims(const string& path, vector<int>& dims)
   return true;
 }
 
-bool H5Reader::numDims(const string& path, int& nDims)
+bool H5Reader::dimensionCount(const string& path, int& nDims)
 {
   vector<int> dims;
   if (!getDims(path, dims)) {

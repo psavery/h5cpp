@@ -37,21 +37,21 @@ TEST(ReadDataTest, getDataType)
   EXPECT_EQ(reader.dataTypeToString(type), "Float");
 }
 
-TEST(ReadDataTest, numDims)
+TEST(ReadDataTest, dimensionCount)
 {
   H5Reader reader(test_file);
   int nDims;
 
-  EXPECT_TRUE(reader.numDims("/data/tomography/data", nDims));
+  EXPECT_TRUE(reader.dimensionCount("/data/tomography/data", nDims));
   EXPECT_EQ(nDims, 3);
 
-  EXPECT_TRUE(reader.numDims("/data/tomography/dim1", nDims));
+  EXPECT_TRUE(reader.dimensionCount("/data/tomography/dim1", nDims));
   EXPECT_EQ(nDims, 1);
 
-  EXPECT_TRUE(reader.numDims("/data/tomography/dim2", nDims));
+  EXPECT_TRUE(reader.dimensionCount("/data/tomography/dim2", nDims));
   EXPECT_EQ(nDims, 1);
 
-  EXPECT_TRUE(reader.numDims("/data/tomography/dim3", nDims));
+  EXPECT_TRUE(reader.dimensionCount("/data/tomography/dim3", nDims));
   EXPECT_EQ(nDims, 1);
 }
 

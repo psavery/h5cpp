@@ -13,7 +13,7 @@ namespace tomviz {
 class H5Reader {
 public:
   // Opens the file
-  explicit H5Reader(const std::string& filename);
+  explicit H5Reader(const std::string& fileName);
   // If a file is open, automatically closes the file
   ~H5Reader();
 
@@ -58,7 +58,7 @@ public:
 
   // Get the number of dimensions of the data
   // Returns false if the data does not exist
-  bool numDims(const std::string& path, int& nDims);
+  bool dimensionCount(const std::string& path, int& nDims);
 
   // Get the dimensions of the data
   // Returns false if an error occurs
