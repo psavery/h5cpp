@@ -16,36 +16,43 @@ static const string test_file = TESTDATADIR + string("/tomviz_tilt_ser.emd");
 TEST(ReadAttributesTest, doesNotExist)
 {
   H5Reader reader(test_file);
-  int value;
+  bool ok;
 
-  EXPECT_FALSE(reader.attribute("/does_not_exist/", "does_not_exist", value));
+  reader.attribute<int>("/does_not_exist/", "does_not_exist", &ok);
+
+  EXPECT_FALSE(ok);
 }
 
 TEST(ReadAttributesTest, wrongType)
 {
   H5Reader reader(test_file);
-  int value;
+  bool ok;
 
-  EXPECT_FALSE(reader.attribute("/data/tomography/dim1", "name", value));
+  reader.attribute<int>("/data/tomography/dim1", "name", &ok);
+  EXPECT_FALSE(ok);
 }
 
 TEST(ReadAttributesTest, readAttribute)
 {
   H5Reader reader(test_file);
-  string value;
+  bool ok;
 
-  EXPECT_TRUE(reader.attribute("/data/tomography/dim1", "name", value));
+  string value = reader.attribute<string>("/data/tomography/dim1", "name", &ok);
+
+  EXPECT_TRUE(ok);
   EXPECT_EQ(value, "angles");
 
-  EXPECT_TRUE(reader.attribute("/data/tomography/dim1", "units", value));
+  value = reader.attribute<string>("/data/tomography/dim1", "units", &ok);
+
+  EXPECT_TRUE(ok);
   EXPECT_EQ(value, "[deg]");
 }
 
 TEST(ReadAttributesTest, getAttributeType)
 {
   H5Reader reader(test_file);
-  H5Reader::DataType type;
 
-  EXPECT_TRUE(reader.attributeType("/data/tomography/dim1", "name", type));
+  H5Reader::DataType type = reader.attributeType("/data/tomography/dim1",
+                                                 "name");
   EXPECT_EQ(type, H5Reader::DataType::String);
 }

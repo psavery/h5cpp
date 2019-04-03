@@ -18,25 +18,33 @@ static const string test_file = TESTDATADIR + string("/tomviz_tilt_ser.emd");
 TEST(GetChildrenTest, doesNotExist)
 {
   H5Reader reader(test_file);
-  vector<string> result;
+  bool ok;
+  vector<string> result = reader.children("/does_not_exist/", &ok);
 
-  EXPECT_FALSE(reader.children("/does_not_exist/", result));
+  EXPECT_FALSE(ok);
+  EXPECT_TRUE(result.empty());
 }
 
 TEST(GetChildrenTest, getChildren)
 {
   H5Reader reader(test_file);
-  vector<string> result;
+  bool ok;
 
-  EXPECT_TRUE(reader.children("/", result));
+  vector<string> result = reader.children("/", &ok);
+
+  EXPECT_TRUE(ok);
   EXPECT_EQ(result.size(), 1);
   EXPECT_EQ(result[0], "data");
 
-  EXPECT_TRUE(reader.children("/data", result));
+  result = reader.children("/data", &ok);
+
+  EXPECT_TRUE(ok);
   EXPECT_EQ(result.size(), 1);
   EXPECT_EQ(result[0], "tomography");
 
-  EXPECT_TRUE(reader.children("/data/tomography", result));
+  result = reader.children("/data/tomography", &ok);
+
+  EXPECT_TRUE(ok);
   EXPECT_EQ(result.size(), 4);
   EXPECT_EQ(result[0], "data");
   EXPECT_EQ(result[1], "dim1");
