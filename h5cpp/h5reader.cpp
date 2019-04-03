@@ -486,7 +486,8 @@ string H5Reader::dataTypeToString(const DataType& type)
     { DataType::UInt64, "UInt64" },
     { DataType::Float,  "Float"  },
     { DataType::Double, "Double" },
-    { DataType::String, "String" }
+    { DataType::String, "String" },
+    { DataType::None,   "None"   }
   };
 
   auto it = DataTypeToString.find(type);
