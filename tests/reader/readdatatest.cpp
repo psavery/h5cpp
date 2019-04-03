@@ -73,19 +73,35 @@ TEST(ReadDataTest, getDims)
   EXPECT_EQ(dims[0], 256);
 }
 
+TEST(ReadDataTest, wrongType)
+{
+  H5Reader reader(test_file);
+  vector<unsigned int> data;
+
+  EXPECT_FALSE(reader.readData("/data/tomography/dim1", data));
+}
+
 TEST(ReadDataTest, getData)
 {
   H5Reader reader(test_file);
-  vector<float> data;
+  vector<float> angleData;
 
-  EXPECT_TRUE(reader.readData("/data/tomography/dim1", data));
+  EXPECT_TRUE(reader.readData("/data/tomography/dim1", angleData));
 
   // These should be -73 to 73, with a spacing of 2
   vector<float> comparison;
   for (int i = -73; i <= 73; i +=2)
     comparison.push_back(i);
 
-  EXPECT_EQ(data.size(), comparison.size());
-  for (size_t i = 0; i < data.size(); ++i)
-    EXPECT_FLOAT_EQ(data[i], comparison[i]);
+  EXPECT_EQ(angleData.size(), comparison.size());
+  for (size_t i = 0; i < angleData.size(); ++i)
+    EXPECT_FLOAT_EQ(angleData[i], comparison[i]);
+
+  vector<unsigned char> data;
+  vector<int> dims;
+  EXPECT_TRUE(reader.readData("/data/tomography/data", data, dims));
+  EXPECT_EQ(dims.size(), 3);
+  EXPECT_EQ(dims[0],  74);
+  EXPECT_EQ(dims[1], 256);
+  EXPECT_EQ(dims[2], 256);
 }

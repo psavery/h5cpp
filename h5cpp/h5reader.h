@@ -69,10 +69,19 @@ public:
   template <typename T>
   bool readData(const std::string& path, std::vector<T>& data);
 
-  // Read multi-dimensional data and interpret it as type T
+  // Read 2-dimensional data and interpret it as type T
   // Returns false if type T does not match the type of the data
   template <typename T>
   bool readData(const std::string& path, std::vector<std::vector<T>>& data);
+
+  // Read multi-dimensional data and interpret it as type T.
+  // A single vector is returned containing the multi-dimensional data.
+  // The caller can use the dimensions to put the results in a different
+  // kind of object if desired.
+  // Returns false if type T does not match the type of data
+  template <typename T>
+  bool readData(const std::string& path, std::vector<T>& data,
+                std::vector<int>& dimensions);
 
 private:
   class H5ReaderImpl;

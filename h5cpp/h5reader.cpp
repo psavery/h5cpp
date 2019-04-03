@@ -395,35 +395,26 @@ bool H5Reader::numDims(const string& path, int& nDims)
 }
 
 template <typename T>
-bool H5Reader::readData(const string& path, vector<vector<T>>& result)
+bool H5Reader::readData(const string& path, vector<T>& result,
+                        vector<int>& dims)
 {
   const hid_t dataTypeId = BasicTypeToH5<T>::dataTypeId();
   const hid_t memTypeId = BasicTypeToH5<T>::memTypeId();
 
-  vector<int> dims;
   if (!getDims(path, dims)) {
     cerr << "Failed to get the dimensions\n";
     return false;
   }
 
-  // Multiply all the numbers together
+  // Multiply all the dimensions together
   auto size = std::accumulate(dims.cbegin(), dims.cend(), 1,
                               std::multiplies<int>());
-  vector<T> data;
-  data.resize(size);
 
-  if (!m_impl->readData(path, dataTypeId, memTypeId, data.data())) {
+  result.clear();
+  result.resize(size);
+
+  if (!m_impl->readData(path, dataTypeId, memTypeId, result.data())) {
     cerr << "Failed to read the data\n";
-    return false;
-  }
-
-  // Now move all the results into the vector of vectors
-  if (dims.size() == 1) {
-    result.resize(1);
-    result[0] = std::move(data);
-  }
-  else (dims.size() > 1) {
-    // Not yet implemented...
     return false;
   }
 
@@ -433,20 +424,58 @@ bool H5Reader::readData(const string& path, vector<vector<T>>& result)
 template <typename T>
 bool H5Reader::readData(const string& path, vector<T>& result)
 {
-  vector<vector<T>> data;
-  if (!readData(path, data)) {
+  vector<int> dims;
+  if (!readData(path, result, dims)) {
     cerr << "Failed to read the data\n";
     return false;
   }
 
   // Make sure there is one dimension
-  if (data.size() != 1) {
-    cerr << "Error: single-dimensional readData() called, but "
+  if (dims.size() != 1) {
+    cerr << "Warning: single-dimensional readData() called, but "
          << "multi-dimensional data was obtained.\n";
+    cerr << "Number of dims is: " << dims.size() << "\n";
     return false;
   }
 
-  result = std::move(data[0]);
+  return true;
+}
+
+template <typename T>
+bool H5Reader::readData(const string& path, vector<vector<T>>& result)
+{
+  vector<T> data;
+  vector<int> dims;
+  if (!readData(path, data, dims)) {
+    cerr << "Failed to read the data\n";
+    return false;
+  }
+
+  // Make sure there are two dimensions
+  if (dims.size() != 2) {
+    cerr << "Warning: two-dimensional readData() called, but "
+         << "two-dimensional data was not obtained.\n";
+    cerr << "Number of dims is: " << dims.size() << "\n";
+    return false;
+  }
+
+  // Just a sanity check
+  if (data.size() != dims[0] * dims[1]) {
+    cerr << "Data size does not match dimensions!\n";
+    return false;
+  }
+
+  result.clear();
+  result.resize(dims[0]);
+  for (auto& elem: result)
+    elem.resize(dims[1]);
+
+  for (size_t i = 0; i < dims[0]; ++i) {
+    for (size_t j = 0; j < dims[1]; ++j) {
+      result[i][j] = data[i * dims[0] + j];
+    }
+  }
+
   return true;
 }
 
