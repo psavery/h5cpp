@@ -58,24 +58,35 @@ public:
     return fileIsValid();
   }
 
-  bool attributeExists(const string& group, const string& name)
+  bool attributeExists(const string& path, const string& name)
   {
     if (!fileIsValid())
       return false;
 
-    return H5Aexists_by_name(m_fileId, group.c_str(), name.c_str(),
+    return H5Aexists_by_name(m_fileId, path.c_str(), name.c_str(),
                              H5P_DEFAULT) > 0;
   }
 
-  bool attribute(const string& group, const string& name, void* value,
-                 hid_t dataTypeId, hid_t memTypeId)
+  bool hasAttribute(const string& path)
   {
-    if (!attributeExists(group, name)) {
-      cerr << "Attribute " << group << name << " not found!" << endl;
+    H5O_info_t info;
+    if (!getInfoByName(path, info)) {
+      cerr << "Failed to get info by name\n";
       return false;
     }
 
-    hid_t attr = H5Aopen_by_name(m_fileId, group.c_str(), name.c_str(),
+    return info.num_attrs > 0;
+  }
+
+  bool attribute(const string& path, const string& name, void* value,
+                 hid_t dataTypeId, hid_t memTypeId)
+  {
+    if (!attributeExists(path, name)) {
+      cerr << "Attribute " << path << name << " not found!" << endl;
+      return false;
+    }
+
+    hid_t attr = H5Aopen_by_name(m_fileId, path.c_str(), name.c_str(),
                                  H5P_DEFAULT, H5P_DEFAULT);
     hid_t type = H5Aget_type(attr);
 
@@ -227,7 +238,7 @@ vector<string> H5Reader::children(const string& path, bool* ok)
 }
 
 template <typename T>
-T H5Reader::attribute(const string& group, const string& name, bool* ok)
+T H5Reader::attribute(const string& path, const string& name, bool* ok)
 {
   setOk(ok, false);
   T result;
@@ -235,7 +246,7 @@ T H5Reader::attribute(const string& group, const string& name, bool* ok)
   const hid_t dataTypeId = BasicTypeToH5<T>::dataTypeId();
   const hid_t memTypeId = BasicTypeToH5<T>::memTypeId();
 
-  if (m_impl->attribute(group, name, &result, dataTypeId, memTypeId))
+  if (m_impl->attribute(path, name, &result, dataTypeId, memTypeId))
     setOk(ok, true);
 
   return result;
@@ -243,20 +254,20 @@ T H5Reader::attribute(const string& group, const string& name, bool* ok)
 
 // We have a specialization for std::string
 template<>
-string H5Reader::attribute<string>(const string& group, const string& name,
+string H5Reader::attribute<string>(const string& path, const string& name,
                                    bool* ok)
 {
   setOk(ok, false);
   string result;
 
-  if (!m_impl->attributeExists(group, name)) {
-    cerr << "Attribute " << group << name << " not found!" << endl;
+  if (!m_impl->attributeExists(path, name)) {
+    cerr << "Attribute " << path << name << " not found!" << endl;
     return result;
   }
 
   hid_t fileId = m_impl->fileId();
 
-  hid_t attr = H5Aopen_by_name(fileId, group.c_str(), name.c_str(),
+  hid_t attr = H5Aopen_by_name(fileId, path.c_str(), name.c_str(),
                                H5P_DEFAULT, H5P_DEFAULT);
   hid_t type = H5Aget_type(attr);
 
@@ -265,14 +276,14 @@ string H5Reader::attribute<string>(const string& group, const string& name,
   HIDCloser typeCloser(type, H5Tclose);
 
   if (H5T_STRING != H5Tget_class(type)) {
-    cerr << group << name << " is not a string" << endl;
+    cerr << path << name << " is not a string" << endl;
     return result;
   }
   char* tmpString;
   int is_var_str = H5Tis_variable_str(type);
   if (is_var_str > 0) { // if it is a variable-length string
     if (H5Aread(attr, type, &tmpString) < 0) {
-      cerr << "Failed to read attribute " << group << " " << name << endl;
+      cerr << "Failed to read attribute " << path << " " << name << endl;
       return result;
     }
     result = tmpString;
@@ -286,7 +297,7 @@ string H5Reader::attribute<string>(const string& group, const string& name,
     }
     tmpString = new char[size + 1];
     if (H5Aread(attr, type, tmpString) < 0) {
-      cerr << "Failed to read attribute " << group << " " << name << endl;
+      cerr << "Failed to read attribute " << path << " " << name << endl;
       delete [] tmpString;
       return result;
     }
@@ -302,15 +313,25 @@ string H5Reader::attribute<string>(const string& group, const string& name,
   return result;
 }
 
-DataType H5Reader::attributeType(const string& group, const string& name)
+bool H5Reader::hasAttribute(const string& path)
 {
-  if (!m_impl->attributeExists(group, name)) {
-    cerr << "Attribute " << group << name << " not found!" << endl;
+  return m_impl->hasAttribute(path);
+}
+
+bool H5Reader::hasAttribute(const string& path, const string& name)
+{
+  return m_impl->attributeExists(path, name);
+}
+
+DataType H5Reader::attributeType(const string& path, const string& name)
+{
+  if (!m_impl->attributeExists(path, name)) {
+    cerr << "Attribute " << path << name << " not found!" << endl;
     return DataType::None;
   }
 
   hid_t fileId = m_impl->fileId();
-  hid_t attr = H5Aopen_by_name(fileId, group.c_str(), name.c_str(),
+  hid_t attr = H5Aopen_by_name(fileId, path.c_str(), name.c_str(),
                                H5P_DEFAULT, H5P_DEFAULT);
   hid_t h5type = H5Aget_type(attr);
 
@@ -323,6 +344,11 @@ DataType H5Reader::attributeType(const string& group, const string& name)
     return DataType::String;
 
   return m_impl->getH5ToDataType(h5type);
+}
+
+bool H5Reader::isDataSet(const string& path)
+{
+  return m_impl->isDataSet(path);
 }
 
 DataType H5Reader::dataType(const string& path)

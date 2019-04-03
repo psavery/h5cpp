@@ -32,6 +32,17 @@ TEST(ReadAttributesTest, wrongType)
   EXPECT_FALSE(ok);
 }
 
+TEST(ReadAttributesTest, hasAttribute)
+{
+  H5Reader reader(test_file);
+
+  EXPECT_FALSE(reader.hasAttribute("/data"));
+  EXPECT_TRUE(reader.hasAttribute("/data/tomography/dim1"));
+
+  EXPECT_FALSE(reader.hasAttribute("/data/tomography/dim1", "DNE"));
+  EXPECT_TRUE(reader.hasAttribute("/data/tomography/dim1", "name"));
+}
+
 TEST(ReadAttributesTest, readAttribute)
 {
   H5Reader reader(test_file);

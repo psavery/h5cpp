@@ -16,6 +16,14 @@ using tomviz::H5Reader;
 static const string test_file = TESTDATADIR + string("/tomviz_tilt_ser.emd");
 static const string pmd_test_file = TESTDATADIR + string("/open_pmd_2d.h5");
 
+TEST(ReadDataTest, isDataSet)
+{
+  H5Reader reader(test_file);
+
+  EXPECT_FALSE(reader.isDataSet("/data"));
+  EXPECT_TRUE(reader.isDataSet("/data/tomography/data"));
+}
+
 TEST(ReadDataTest, getDataType)
 {
   H5Reader reader(test_file);
