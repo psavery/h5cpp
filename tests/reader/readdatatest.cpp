@@ -11,7 +11,7 @@ using std::vector;
 
 using tomviz::H5Reader;
 
-static const string test_file = TESTDATADIR + string("/sample.h5");
+static const string test_file = TESTDATADIR + string("/tomviz_tilt_ser.emd");
 
 TEST(ReadDataTest, getDataType)
 {

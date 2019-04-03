@@ -9,7 +9,7 @@ using std::string;
 
 using tomviz::H5Reader;
 
-static const string test_file = TESTDATADIR + string("/sample.h5");
+static const string test_file = TESTDATADIR + string("/tomviz_tilt_ser.h5");
 
 TEST(AttributeTest, doesNotExist)
 {
