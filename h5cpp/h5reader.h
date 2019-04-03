@@ -32,7 +32,8 @@ public:
     UInt64,
     Float,
     Double,
-    String
+    String,
+    None = -1
   };
 
   // Get a string representation of the DataType enum
