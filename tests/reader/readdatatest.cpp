@@ -12,6 +12,7 @@ using std::vector;
 using tomviz::H5Reader;
 
 static const string test_file = TESTDATADIR + string("/tomviz_tilt_ser.emd");
+static const string pmd_test_file = TESTDATADIR + string("/open_pmd_2d.h5");
 
 TEST(ReadDataTest, getDataType)
 {
@@ -81,7 +82,7 @@ TEST(ReadDataTest, wrongType)
   EXPECT_FALSE(reader.readData("/data/tomography/dim1", data));
 }
 
-TEST(ReadDataTest, getData)
+TEST(ReadDataTest, getDataTomviz)
 {
   H5Reader reader(test_file);
   vector<float> angleData;
@@ -104,4 +105,22 @@ TEST(ReadDataTest, getData)
   EXPECT_EQ(dims[0],  74);
   EXPECT_EQ(dims[1], 256);
   EXPECT_EQ(dims[2], 256);
+}
+
+TEST(ReadDataTest, getDataPmd)
+{
+  H5Reader reader(pmd_test_file);
+  vector<vector<double>> fieldData;
+
+  EXPECT_TRUE(reader.readData("/data/255/fields/rho", fieldData));
+
+  EXPECT_EQ(fieldData.size(), 51);
+
+  for (const auto& datum: fieldData)
+    EXPECT_EQ(datum.size(), 201);
+
+  // Pick a few samples to check
+  EXPECT_DOUBLE_EQ(fieldData[0][0], 0.0);
+  EXPECT_DOUBLE_EQ(fieldData[1][0], 480.786625502941430);
+  EXPECT_DOUBLE_EQ(fieldData[2][3],  51.101970543191413);
 }

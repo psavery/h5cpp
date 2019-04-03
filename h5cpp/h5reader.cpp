@@ -464,7 +464,7 @@ bool H5Reader::readData(const string& path, vector<vector<T>>& result)
 
   for (size_t i = 0; i < dims[0]; ++i) {
     for (size_t j = 0; j < dims[1]; ++j) {
-      result[i][j] = data[i * dims[0] + j];
+      result[i][j] = data[i * dims[1] + j];
     }
   }
 
