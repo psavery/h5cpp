@@ -558,7 +558,7 @@ template bool H5Reader::readData(const string&, vector<unsigned long long>&,
 template bool H5Reader::readData(const string&, vector<float>&, vector<int>&);
 template bool H5Reader::readData(const string&, vector<double>&, vector<int>&);
 
-// We need to create a specialization for these
+// We need to create specializations for these
 //template bool H5Reader::readData(const string&, vector<string>&);
 //template bool H5Reader::readData(const string&, vector<vector<string>>&);
 //template bool H5Reader::readData(const string&, vector<string>&,
