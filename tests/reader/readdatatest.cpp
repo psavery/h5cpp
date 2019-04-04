@@ -116,7 +116,7 @@ TEST(ReadDataTest, getDataTomviz)
   EXPECT_EQ(dims[2], 256);
 
   // Let's reshape it into a 3D vector
-  vector<vector<vector<double>>> data3D;
+  vector<vector<vector<unsigned char>>> data3D;
   data3D.resize(dims[0]);
   for (auto& datum: data3D) {
     datum.resize(dims[1]);
