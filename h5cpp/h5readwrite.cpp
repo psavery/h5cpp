@@ -31,7 +31,7 @@ void setOk(bool* ok, bool status)
 
 } // end namespace
 
-namespace tomviz {
+namespace h5 {
 
 using DataType = H5ReadWrite::DataType;
 
@@ -786,4 +786,4 @@ template bool H5ReadWrite::writeData(const string&, const string&, const vector<
 //template vector<string> H5ReadWrite::readData(const string&);
 //template vector<string> H5ReadWrite::readData(const string&, vector<int>&);
 
-} // namespace tomviz
+} // namespace h5

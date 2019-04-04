@@ -9,7 +9,7 @@
 
 using std::string;
 
-using tomviz::H5ReadWrite;
+using h5::H5ReadWrite;
 
 static const string test_file = TESTDATADIR + string("/tomviz_tilt_ser.emd");
 

@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-namespace tomviz {
+namespace h5 {
 
 class H5ReadWrite {
 public:
@@ -200,6 +200,6 @@ private:
   std::unique_ptr<H5ReadWriteImpl> m_impl;
 };
 
-} // namespace tomviz
+} // namespace h5
 
 #endif // tomvizH5ReadWrite_h

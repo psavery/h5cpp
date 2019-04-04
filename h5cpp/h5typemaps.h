@@ -9,7 +9,7 @@
 #include "h5capi.h"
 #include "h5readwrite.h" // This is included only for the "DataType" enum
 
-namespace tomviz {
+namespace h5 {
 
 template<typename T>
 struct BasicTypeToH5;
@@ -103,6 +103,6 @@ static const std::map<hid_t, H5ReadWrite::DataType> H5ToDataType =
   { H5T_IEEE_F64LE, H5ReadWrite::DataType::Double }
 };
 
-} // end namespace tomviz
+} // end namespace h5
 
 #endif // tomvizH5TypeMaps
