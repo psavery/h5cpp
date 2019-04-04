@@ -2,12 +2,14 @@
    It is released under the 3-Clause BSD License, see "LICENSE". */
 
 #include <string>
+#include <vector>
 
 #include <gtest/gtest.h>
 
 #include <h5cpp/h5reader.h>
 
 using std::string;
+using std::vector;
 
 using tomviz::H5Reader;
 
@@ -41,6 +43,19 @@ TEST(ReadAttributesTest, hasAttribute)
 
   EXPECT_FALSE(reader.hasAttribute("/data/tomography/dim1", "DNE"));
   EXPECT_TRUE(reader.hasAttribute("/data/tomography/dim1", "name"));
+}
+
+TEST(ReadAttributesTest, listAttributes)
+{
+  H5Reader reader(test_file);
+  bool ok;
+
+  vector<string> attributes = reader.attributes("/data/tomography/dim1", &ok);
+
+  EXPECT_TRUE(ok);
+  EXPECT_EQ(attributes.size(), 2);
+  EXPECT_EQ(attributes[0], "name");
+  EXPECT_EQ(attributes[1], "angles");
 }
 
 TEST(ReadAttributesTest, readAttribute)

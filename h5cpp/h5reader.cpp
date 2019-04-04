@@ -52,6 +52,20 @@ public:
   }
 };
 
+class ListAllAttributesVisitor
+{
+public:
+  vector<string> attributes;
+  static herr_t operation(hid_t /*location_id*/, const char* name,
+                          const H5A_info_t* a_info, void* op_data)
+  {
+    cerr << "Hi!\n";
+    auto* self = reinterpret_cast<ListAllAttributesVisitor*>(op_data);
+    self->attributes.push_back(name);
+    return 0;
+  }
+};
+
 class H5Reader::H5ReaderImpl {
 public:
   H5ReaderImpl()
@@ -254,6 +268,39 @@ vector<string> H5Reader::children(const string& path, bool* ok)
   return result;
 }
 
+vector<string> H5Reader::attributes(const string& path, bool* ok)
+{
+  setOk(ok, false);
+  if (!m_impl->fileIsValid()) {
+    cerr << "File is not valid\n";
+    return vector<string>();
+  }
+
+  hid_t objId = H5Oopen(m_impl->fileId(), path.c_str(), H5P_DEFAULT);
+  if (objId < 0) {
+    cerr << "Failed to open the object at " << path << "\n";
+    return vector<string>();
+  }
+
+  // Automatically close when finished
+  HIDCloser(objId, H5Oclose);
+
+  ListAllAttributesVisitor visitor;
+  hsize_t index = 0;
+  herr_t code = H5Aiterate(objId, H5_INDEX_NAME, H5_ITER_INC,
+                           &index, &visitor.operation, &visitor);
+
+  cerr << "index is " << index << "\n";
+
+  if (code < 0) {
+    cerr << "H5Aiterate failed!\n";
+    return vector<string>();
+  }
+
+  setOk(ok, true);
+  return visitor.attributes;
+}
+
 template <typename T>
 T H5Reader::attribute(const string& path, const string& name, bool* ok)
 {
@@ -370,15 +417,19 @@ bool H5Reader::isDataSet(const string& path)
 
 vector<string> H5Reader::allDataSets()
 {
-  if (!m_impl->fileIsValid())
+  if (!m_impl->fileIsValid()) {
+    cerr << "File is not valid\n";
     return vector<string>();
+  }
 
   ListAllDataSetsVisitor visitor;
   herr_t code = H5Ovisit(m_impl->fileId(), H5_INDEX_NAME, H5_ITER_INC,
                          &visitor.operation, &visitor);
 
-  if (code < 0)
+  if (code < 0) {
+    cerr << "H5Ovisit failed!\n";
     return vector<string>();
+  }
 
   return visitor.dataSets;
 }

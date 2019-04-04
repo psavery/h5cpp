@@ -72,6 +72,15 @@ public:
   bool hasAttribute(const std::string& path, const std::string& name);
 
   /**
+   * Get all of the attributes of a given path.
+   * @param path The path from which to get the attributes.
+   * @param ok If used, set to true on success and false on failure.
+   * @return A vector of strings of the attributes.
+   */
+  std::vector<std::string> attributes(const std::string& path,
+                                      bool* ok = nullptr);
+
+  /**
    * Get an attribute's type.
    * @param path The path to the attribute.
    * @param name The name of the attribute.
