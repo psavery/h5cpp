@@ -24,6 +24,19 @@ TEST(ReadDataTest, isDataSet)
   EXPECT_TRUE(reader.isDataSet("/data/tomography/data"));
 }
 
+TEST(ReadDataTest, allDataSets)
+{
+  H5Reader reader(test_file);
+
+  vector<string> dataSets = reader.allDataSets();
+
+  EXPECT_EQ(dataSets.size(), 4);
+  EXPECT_EQ(dataSets[0], "data/tomography/data");
+  EXPECT_EQ(dataSets[1], "data/tomography/dim1");
+  EXPECT_EQ(dataSets[2], "data/tomography/dim2");
+  EXPECT_EQ(dataSets[3], "data/tomography/dim3");
+}
+
 TEST(ReadDataTest, getDataType)
 {
   H5Reader reader(test_file);
