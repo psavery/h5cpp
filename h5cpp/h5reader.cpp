@@ -458,9 +458,6 @@ vector<T> H5Reader::readData(const string& path, vector<int>& dims)
 {
   vector<T> result;
 
-  const hid_t dataTypeId = BasicTypeToH5<T>::dataTypeId();
-  const hid_t memTypeId = BasicTypeToH5<T>::memTypeId();
-
   dims = getDimensions(path);
   if (dims.empty()) {
     cerr << "Failed to get the dimensions\n";
@@ -472,7 +469,7 @@ vector<T> H5Reader::readData(const string& path, vector<int>& dims)
                               std::multiplies<int>());
 
   result.resize(size);
-  if (!m_impl->readData(path, dataTypeId, memTypeId, result.data())) {
+  if (!readData(path, result.data())) {
     cerr << "Failed to read the data\n";
     return vector<T>();
   }
