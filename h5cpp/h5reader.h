@@ -165,13 +165,15 @@ public:
   /**
    * Write data to a specified path.
    * @param path The path where the data will be written.
+   * @param name The name of the data.
+   * @param dimensions The dimensions of the data.
    * @param data The data to write.
-   * @param dimensions The dimensions of the data. Assumed 1D if unset.
    * @return True on success, false on failure.
    */
   template <typename T>
-  bool writeData(const std::string& path, const std::vector<T>& data,
-                 std::vector<int> dimensions = std::vector<int>());
+  bool writeData(const std::string& path, const std::string& name,
+                 const std::vector<int>& dimensions,
+                 const std::vector<T>& data);
 
   /**
    * Set an attribute on a specified path.
@@ -179,7 +181,6 @@ public:
    * @param name The name of the attribute.
    * @param value The value of the attribute.
    * @return True on success, false on failure.
-   * \warning This is currently only implemented for std::string.
    */
   template <typename T>
   bool setAttribute(const std::string& path, const std::string& name, T value);

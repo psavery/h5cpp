@@ -156,6 +156,35 @@ public:
     return H5Awrite(attributeId, typeId, value) >= 0;
   }
 
+  bool writeData(const string& path, const string& name,
+                 const std::vector<int>& dims, const void* data,
+                 hid_t dataTypeId, hid_t memTypeId)
+  {
+    if (!fileIsValid()) {
+      cerr << "File is invalid\n";
+      return false;
+    }
+
+    std::vector<hsize_t> h5dim;
+    for (size_t i = 0; i < dims.size(); ++i) {
+      h5dim.push_back(static_cast<hsize_t>(dims[i]));
+    }
+    hid_t groupId = H5Gopen(m_fileId, path.c_str(), H5P_DEFAULT);
+    hid_t dataSpaceId =
+      H5Screate_simple(static_cast<int>(dims.size()), &h5dim[0], NULL);
+    hid_t dataId = H5Dcreate(groupId, name.c_str(), dataTypeId, dataSpaceId,
+                             H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
+    HIDCloser groupCloser(groupId, H5Gclose);
+    HIDCloser spaceCloser(dataSpaceId, H5Sclose);
+    HIDCloser dataCloser(dataId, H5Dclose);
+
+    hid_t status = H5Dwrite(dataId, memTypeId, H5S_ALL, H5S_ALL,
+                            H5P_DEFAULT, data);
+
+    return status >= 0;
+  }
+
   // void* data needs to be of the appropiate type and size
   bool readData(const string& path, hid_t dataTypeId, hid_t memTypeId,
                 void* data)
@@ -567,10 +596,14 @@ bool H5Reader::readData(const string& path, T* data)
 }
 
 template <typename T>
-bool writeData(const std::string& path, const std::vector<T>& data,
-               std::vector<int> dimensions)
+bool H5Reader::writeData(const string& path, const string& name,
+                         const vector<int>& dims, const vector<T>& data)
 {
-  return false;
+  const hid_t dataTypeId = BasicTypeToH5<T>::dataTypeId();
+  const hid_t memTypeId = BasicTypeToH5<T>::memTypeId();
+
+  return m_impl->writeData(path, name, dims, data.data(),
+                           dataTypeId, memTypeId);
 }
 
 template<typename T>
@@ -707,6 +740,7 @@ template bool H5Reader::readData(const string&, unsigned long long*);
 template bool H5Reader::readData(const string&, float*);
 template bool H5Reader::readData(const string&, double*);
 
+// setAttribute
 template bool H5Reader::setAttribute(const string&, const string&, char);
 template bool H5Reader::setAttribute(const string&, const string&, short);
 template bool H5Reader::setAttribute(const string&, const string&, int);
@@ -718,6 +752,18 @@ template bool H5Reader::setAttribute(const string&, const string&, unsigned long
 template bool H5Reader::setAttribute(const string&, const string&, float);
 template bool H5Reader::setAttribute(const string&, const string&, double);
 template bool H5Reader::setAttribute(const string&, const string&, const string&);
+
+// writeData
+template bool H5Reader::writeData(const string&, const string&, const vector<int>&, const vector<char>&);
+template bool H5Reader::writeData(const string&, const string&, const vector<int>&, const vector<short>&);
+template bool H5Reader::writeData(const string&, const string&, const vector<int>&, const vector<int>&);
+template bool H5Reader::writeData(const string&, const string&, const vector<int>&, const vector<long long>&);
+template bool H5Reader::writeData(const string&, const string&, const vector<int>&, const vector<unsigned char>&);
+template bool H5Reader::writeData(const string&, const string&, const vector<int>&, const vector<unsigned short>&);
+template bool H5Reader::writeData(const string&, const string&, const vector<int>&, const vector<unsigned int>&);
+template bool H5Reader::writeData(const string&, const string&, const vector<int>&, const vector<unsigned long long>&);
+template bool H5Reader::writeData(const string&, const string&, const vector<int>&, const vector<float>&);
+template bool H5Reader::writeData(const string&, const string&, const vector<int>&, const vector<double>&);
 
 // We need to create specializations for these
 //template vector<string> H5Reader::readData(const string&);
