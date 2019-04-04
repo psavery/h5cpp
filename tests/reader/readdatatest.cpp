@@ -6,19 +6,19 @@
 
 #include <gtest/gtest.h>
 
-#include <h5cpp/h5reader.h>
+#include <h5cpp/h5readwrite.h>
 
 using std::string;
 using std::vector;
 
-using tomviz::H5Reader;
+using tomviz::H5ReadWrite;
 
 static const string test_file = TESTDATADIR + string("/tomviz_tilt_ser.emd");
 static const string pmd_test_file = TESTDATADIR + string("/open_pmd_2d.h5");
 
 TEST(ReadDataTest, isDataSet)
 {
-  H5Reader reader(test_file);
+  H5ReadWrite reader(test_file);
 
   EXPECT_FALSE(reader.isDataSet("/data"));
   EXPECT_TRUE(reader.isDataSet("/data/tomography/data"));
@@ -26,7 +26,7 @@ TEST(ReadDataTest, isDataSet)
 
 TEST(ReadDataTest, allDataSets)
 {
-  H5Reader reader(test_file);
+  H5ReadWrite reader(test_file);
 
   vector<string> dataSets = reader.allDataSets();
 
@@ -39,19 +39,19 @@ TEST(ReadDataTest, allDataSets)
 
 TEST(ReadDataTest, getDataType)
 {
-  H5Reader reader(test_file);
+  H5ReadWrite reader(test_file);
 
-  H5Reader::DataType type = reader.dataType("/data/tomography/data");
-  EXPECT_EQ(type, H5Reader::DataType::UInt8);
+  H5ReadWrite::DataType type = reader.dataType("/data/tomography/data");
+  EXPECT_EQ(type, H5ReadWrite::DataType::UInt8);
 
   type = reader.dataType("/data/tomography/dim1");
-  EXPECT_EQ(type, H5Reader::DataType::Float);
+  EXPECT_EQ(type, H5ReadWrite::DataType::Float);
 
   type = reader.dataType("/data/tomography/dim2");
-  EXPECT_EQ(type, H5Reader::DataType::Float);
+  EXPECT_EQ(type, H5ReadWrite::DataType::Float);
 
   type = reader.dataType("/data/tomography/dim3");
-  EXPECT_EQ(type, H5Reader::DataType::Float);
+  EXPECT_EQ(type, H5ReadWrite::DataType::Float);
 
   // One test for the string converter
   EXPECT_EQ(reader.dataTypeToString(type), "Float");
@@ -59,7 +59,7 @@ TEST(ReadDataTest, getDataType)
 
 TEST(ReadDataTest, dimensionCount)
 {
-  H5Reader reader(test_file);
+  H5ReadWrite reader(test_file);
   int nDims = reader.dimensionCount("/data/tomography/data");
   EXPECT_EQ(nDims, 3);
 
@@ -75,7 +75,7 @@ TEST(ReadDataTest, dimensionCount)
 
 TEST(ReadDataTest, getDimensions)
 {
-  H5Reader reader(test_file);
+  H5ReadWrite reader(test_file);
   vector<int> dims = reader.getDimensions("/data/tomography/data");
   EXPECT_EQ(dims.size(), 3);
   EXPECT_EQ(dims[0],  74);
@@ -97,7 +97,7 @@ TEST(ReadDataTest, getDimensions)
 
 TEST(ReadDataTest, wrongType)
 {
-  H5Reader reader(test_file);
+  H5ReadWrite reader(test_file);
   vector<unsigned int> data =
     reader.readData<unsigned int>("/data/tomography/dim1");
 
@@ -106,7 +106,7 @@ TEST(ReadDataTest, wrongType)
 
 TEST(ReadDataTest, getDataTomviz)
 {
-  H5Reader reader(test_file);
+  H5ReadWrite reader(test_file);
   vector<float> angleData = reader.readData<float>("/data/tomography/dim1");
 
   EXPECT_FALSE(angleData.empty());
@@ -154,7 +154,7 @@ TEST(ReadDataTest, getDataTomviz)
 
 TEST(ReadDataTest, getDataPmd)
 {
-  H5Reader reader(pmd_test_file);
+  H5ReadWrite reader(pmd_test_file);
 
   vector<int> dims;
   vector<double> fieldData = reader.readData<double>("/data/255/fields/rho",
@@ -186,7 +186,7 @@ TEST(ReadDataTest, getDataPmd)
 
 TEST(ReadDataTest, getDataViaPointer)
 {
-  H5Reader reader(pmd_test_file);
+  H5ReadWrite reader(pmd_test_file);
 
   vector<int> dims = reader.getDimensions("/data/255/fields/rho");
 

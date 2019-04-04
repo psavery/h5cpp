@@ -6,18 +6,18 @@
 
 #include <gtest/gtest.h>
 
-#include <h5cpp/h5reader.h>
+#include <h5cpp/h5readwrite.h>
 
 using std::string;
 using std::vector;
 
-using tomviz::H5Reader;
+using tomviz::H5ReadWrite;
 
 static const string test_file = TESTDATADIR + string("/tomviz_tilt_ser.emd");
 
 TEST(GetChildrenTest, doesNotExist)
 {
-  H5Reader reader(test_file);
+  H5ReadWrite reader(test_file);
   bool ok;
   vector<string> result = reader.children("/does_not_exist/", &ok);
 
@@ -27,7 +27,7 @@ TEST(GetChildrenTest, doesNotExist)
 
 TEST(GetChildrenTest, getChildren)
 {
-  H5Reader reader(test_file);
+  H5ReadWrite reader(test_file);
   bool ok;
 
   vector<string> result = reader.children("/", &ok);

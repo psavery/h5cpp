@@ -5,17 +5,17 @@
 
 #include <gtest/gtest.h>
 
-#include <h5cpp/h5reader.h>
+#include <h5cpp/h5readwrite.h>
 
 using std::string;
 
-using tomviz::H5Reader;
+using tomviz::H5ReadWrite;
 
 static const string test_file = TESTDATADIR + string("/tomviz_tilt_ser.emd");
 
 TEST(ReadAttributesTest, doesNotExist)
 {
-  H5Reader reader(test_file);
+  H5ReadWrite reader(test_file);
   bool ok;
 
   reader.attribute<int>("/does_not_exist/", "does_not_exist", &ok);
@@ -25,7 +25,7 @@ TEST(ReadAttributesTest, doesNotExist)
 
 TEST(ReadAttributesTest, wrongType)
 {
-  H5Reader reader(test_file);
+  H5ReadWrite reader(test_file);
   bool ok;
 
   reader.attribute<int>("/data/tomography/dim1", "name", &ok);
@@ -34,7 +34,7 @@ TEST(ReadAttributesTest, wrongType)
 
 TEST(ReadAttributesTest, hasAttribute)
 {
-  H5Reader reader(test_file);
+  H5ReadWrite reader(test_file);
 
   EXPECT_FALSE(reader.hasAttribute("/data"));
   EXPECT_TRUE(reader.hasAttribute("/data/tomography/dim1"));
@@ -45,7 +45,7 @@ TEST(ReadAttributesTest, hasAttribute)
 
 TEST(ReadAttributesTest, readAttribute)
 {
-  H5Reader reader(test_file);
+  H5ReadWrite reader(test_file);
   bool ok;
 
   string value = reader.attribute<string>("/data/tomography/dim1", "name", &ok);
@@ -61,9 +61,9 @@ TEST(ReadAttributesTest, readAttribute)
 
 TEST(ReadAttributesTest, getAttributeType)
 {
-  H5Reader reader(test_file);
+  H5ReadWrite reader(test_file);
 
-  H5Reader::DataType type = reader.attributeType("/data/tomography/dim1",
+  H5ReadWrite::DataType type = reader.attributeType("/data/tomography/dim1",
                                                  "name");
-  EXPECT_EQ(type, H5Reader::DataType::String);
+  EXPECT_EQ(type, H5ReadWrite::DataType::String);
 }
