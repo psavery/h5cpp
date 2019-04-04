@@ -12,11 +12,21 @@ namespace tomviz {
 
 class H5Reader {
 public:
+
+  /**
+   * Enumeration of the open modes.
+   */
+  enum class OpenMode {
+    ReadOnly,
+    WriteOnly
+  };
+
   /**
    * Open an HDF5 file for reading.
    * @param fileName the file to open for reading.
    */
-  explicit H5Reader(const std::string& fileName);
+  explicit H5Reader(const std::string& fileName,
+                    OpenMode mode = OpenMode::ReadOnly);
 
   /** Closes the file and destroys the H5Reader */
   ~H5Reader();

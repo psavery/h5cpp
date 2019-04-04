@@ -58,10 +58,19 @@ public:
   {
   }
 
-  H5ReaderImpl(const string& file)
+  H5ReaderImpl(const string& file, OpenMode mode)
   {
-    if (!openFile(file))
-      cerr << "Warning: failed to open file " << file << "\n";
+    if (mode == OpenMode::ReadOnly) {
+      if (!openFile(file))
+        cerr << "Warning: failed to open file " << file << "\n";
+    }
+    else if (mode == OpenMode::WriteOnly) {
+      if (!createFile(file))
+        cerr << "Warning: failed to create file " << file << "\n";
+    }
+    else {
+      cerr << "Warning: open mode currently not implemented.\n";
+    }
   }
 
   ~H5ReaderImpl()
@@ -72,6 +81,13 @@ public:
   bool openFile(const string& file)
   {
     m_fileId = H5Fopen(file.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT);
+    return fileIsValid();
+  }
+
+  bool createFile(const string& file)
+  {
+    m_fileId = H5Fcreate(file.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT,
+                         H5P_DEFAULT);
     return fileIsValid();
   }
 
@@ -287,8 +303,9 @@ public:
   hid_t m_fileId = H5I_INVALID_HID;
 };
 
-H5Reader::H5Reader(const string& file)
-: m_impl(new H5ReaderImpl(file))
+H5Reader::H5Reader(const string& file,
+                   OpenMode mode)
+: m_impl(new H5ReaderImpl(file, mode))
 {
 }
 
