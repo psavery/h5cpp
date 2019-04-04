@@ -124,6 +124,38 @@ public:
     return H5Aread(attr, memTypeId, value) >= 0;
   }
 
+  bool setAttribute(const string& path, const string& name,
+                    void* value, hid_t fileTypeId, hid_t typeId, hsize_t dims)
+  {
+    if (!fileIsValid()) {
+      cerr << "File is not valid\n";
+      return false;
+    }
+
+    bool onData = isDataSet(path);
+
+    hid_t parentId;
+    herr_t (*closer)(hid_t) = nullptr;
+    if (onData) {
+      parentId = H5Dopen(m_fileId, path.c_str(), H5P_DEFAULT);
+      closer = H5Dclose;
+    } else {
+      parentId = H5Gopen(m_fileId, path.c_str(), H5P_DEFAULT);
+      closer = H5Gclose;
+    }
+
+    HIDCloser parentCloser(parentId, closer);
+
+    hid_t dataspaceId = H5Screate_simple(1, &dims, NULL);
+    hid_t attributeId = H5Acreate2(parentId, name.c_str(), fileTypeId,
+                                   dataspaceId, H5P_DEFAULT, H5P_DEFAULT);
+
+    HIDCloser attributeCloser(attributeId, H5Aclose);
+    HIDCloser dataspaceCloser(dataspaceId, H5Sclose);
+
+    return H5Awrite(attributeId, typeId, value) >= 0;
+  }
+
   // void* data needs to be of the appropiate type and size
   bool readData(const string& path, hid_t dataTypeId, hid_t memTypeId,
                 void* data)
@@ -180,6 +212,17 @@ public:
     }
 
     return info.type == H5O_TYPE_DATASET;
+  }
+
+  bool isGroup(const string& path)
+  {
+    H5O_info_t info;
+    if (!getInfoByName(path, info)) {
+      cerr << "Failed to get H5O info by name\n";
+      return false;
+    }
+
+    return info.type == H5O_TYPE_GROUP;
   }
 
   DataType getH5ToDataType(hid_t h5type)
@@ -523,6 +566,66 @@ bool H5Reader::readData(const string& path, T* data)
   return true;
 }
 
+template <typename T>
+bool writeData(const std::string& path, const std::vector<T>& data,
+               std::vector<int> dimensions)
+{
+  return false;
+}
+
+template<typename T>
+bool H5Reader::setAttribute(const string& path, const string& name, T value)
+{
+  const hid_t dataTypeId = BasicTypeToH5<T>::dataTypeId();
+  const hid_t memTypeId = BasicTypeToH5<T>::memTypeId();
+
+  return m_impl->setAttribute(path, name, &value, dataTypeId, memTypeId, 1);
+}
+
+// Specialization for string
+template<>
+bool H5Reader::setAttribute<const string&>(const string& path, const string& name,
+                                           const string& value)
+{
+  if (!m_impl->fileIsValid()) {
+    cerr << "File is not valid\n";
+    return false;
+  }
+
+  hid_t fileId = m_impl->fileId();
+  bool onData = m_impl->isDataSet(path);
+
+  hid_t parentId;
+  herr_t (*closer)(hid_t) = nullptr;
+  if (onData) {
+    parentId = H5Dopen(fileId, path.c_str(), H5P_DEFAULT);
+    closer = H5Dclose;
+  } else {
+    parentId = H5Gopen(fileId, path.c_str(), H5P_DEFAULT);
+    closer = H5Gclose;
+  }
+
+  HIDCloser parentCloser(parentId, closer);
+
+  hsize_t dims = 1;
+  hid_t dataSpaceId = H5Screate_simple(1, &dims, nullptr);
+  hid_t dataType = H5Tcopy(H5T_C_S1);
+  herr_t status = H5Tset_size(dataType, H5T_VARIABLE);
+
+  if (status < 0) {
+    cerr << "Failed to set the size\n";
+    return false;
+  }
+
+  hid_t attributeId = H5Acreate2(parentId, name.c_str(), dataType,
+                                 dataSpaceId, H5P_DEFAULT, H5P_DEFAULT);
+
+  HIDCloser attributeCloser(attributeId, H5Aclose);
+  HIDCloser dataSpaceCloser(dataSpaceId, H5Sclose);
+
+  return H5Awrite(attributeId, dataType, value.c_str());
+}
+
 string H5Reader::dataTypeToString(const DataType& type)
 {
   // Internal map. Keep it updated with the enum.
@@ -603,6 +706,18 @@ template bool H5Reader::readData(const string&, unsigned int*);
 template bool H5Reader::readData(const string&, unsigned long long*);
 template bool H5Reader::readData(const string&, float*);
 template bool H5Reader::readData(const string&, double*);
+
+template bool H5Reader::setAttribute(const string&, const string&, char);
+template bool H5Reader::setAttribute(const string&, const string&, short);
+template bool H5Reader::setAttribute(const string&, const string&, int);
+template bool H5Reader::setAttribute(const string&, const string&, long long);
+template bool H5Reader::setAttribute(const string&, const string&, unsigned char);
+template bool H5Reader::setAttribute(const string&, const string&, unsigned short);
+template bool H5Reader::setAttribute(const string&, const string&, unsigned int);
+template bool H5Reader::setAttribute(const string&, const string&, unsigned long long);
+template bool H5Reader::setAttribute(const string&, const string&, float);
+template bool H5Reader::setAttribute(const string&, const string&, double);
+template bool H5Reader::setAttribute(const string&, const string&, const string&);
 
 // We need to create specializations for these
 //template vector<string> H5Reader::readData(const string&);
